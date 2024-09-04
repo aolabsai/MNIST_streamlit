@@ -6,12 +6,9 @@ import data_prep as data
 
 # for now, doing the path  modifying approach to importing from a parent directory
 # should replace this with a better solution (relative import or proper packaging)
-import sys
 
-sys.path.append("../..")
-
-from ao_core import Arch
-from ao_core import ao_core as ao
+import ao_arch as ar
+import ao_core as ao
 
 
 def streamlit_setup():
@@ -33,7 +30,7 @@ def setup_agent():
     connector_function = "rand_conn"
     # used 360, 180 before to good success
     connector_parameters = [392, 261, 784, 4]
-    arch = Arch(
+    arch = ar.Arch(
         arch_i, arch_z, arch_c, connector_function, connector_parameters, description
     )
 

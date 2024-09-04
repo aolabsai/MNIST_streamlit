@@ -14,6 +14,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -26,14 +27,15 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p -m 0600 ~/.ssh && \
     ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-#Mount the ssh agent so it can pull from a private repo 
+#Mount the ssh agent so it can install from a private repo 
 RUN --mount=type=ssh \
-    pip install git+ssh://git@github.com/aolabsai/ao_core.git
+    pip install git+ssh://git@github.com/aolabsai/ao_core.git \
+                git+ssh://git@github.com/aolabsai/ao_arch.git 
 
 COPY . /app
 
-
-RUN pip3 install -r requirements.txt
+#install standard requirements 
+RUN pip install -r requirements.txt
 
 EXPOSE 8501
 
