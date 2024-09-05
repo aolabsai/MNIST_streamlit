@@ -75,6 +75,18 @@ def run_trials(is_training, num_trials, user_STEPS):
     # print(len(selected_in))
     num_trials = len(selected_in)
 
+     # Being used to test next_state_batch
+    if is_training:
+        # func = np.vectorize(lambda x: 1 if x >= 200 else 0)
+        # func = np.vectorize(data.down_sample_item)
+        INPUT = data.down_sample_item(selected_in).reshape(num_trials, 784)
+        st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
+        print("now training")
+        st.session_state.agent._update_neuron_data(unsequenced=True)
+        print("neurons updated")
+
+        return
+
     for t in np.arange(num_trials):
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
         # print(INPUT)
