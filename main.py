@@ -11,6 +11,7 @@ from arch_MNIST import arch
 def streamlit_setup():
     if "agent" not in st.session_state:
         st.session_state.agent = setup_agent()
+    return
 
 
 def setup_agent():
@@ -23,7 +24,7 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     st.session_state.agent.reset_state()
     print(LABEL)
     if np.shape(LABEL)[0] == 0:
-        for x in np.arange(user_STEPS):
+        for _ in np.arange(user_STEPS):
             print("NO LABEL")
             # core method to run Agents
             st.session_state.agent.next_state(INPUT, DD=False)
@@ -65,23 +66,17 @@ def run_trials(is_training, num_trials, user_STEPS):
         and len(st.session_state.training_sets) > 1
     ):
         font_in, font_out = data.select_training_fonts(st.session_state.training_sets)
-        # print(font_in)
-        # print(font_in)
         selected_in = np.append(selected_in, font_in, axis=0)
         selected_z = np.append(selected_z, font_out, axis=0)
-        # selected_z.extend(font_out)
 
     correct_responses = 0
-    # print(len(selected_in))
     num_trials = len(selected_in)
 
     for t in np.arange(num_trials):
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
-        # print(INPUT)
         LABEL = selected_z[t]
         if is_training:
             user_STEPS = 1
-            # print(INPUT)
             run_agent(user_STEPS, INPUT, LABEL)
             print("Trained on " + str(t))
         else:
@@ -95,6 +90,7 @@ def run_trials(is_training, num_trials, user_STEPS):
     st.session_state.correct_responses = correct_responses
     st.session_state.trial_result = trial_result
     print("Correct on {x}%".format(x=trial_result))
+    return correct_responses
 
 
 def run_canvas():
@@ -108,8 +104,10 @@ def run_canvas():
     print(response)
     response_int = int("".join(str(x) for x in response), 2)
     st.session_state.canvas_int = response_int
+    return
 
 
+# Used to construct images of agent state
 def arr_to_img(img_array, enlarge_factor=15):
     # Convert the binary array to a numpy array
     img_array = np.array(img_array, dtype=np.uint8)
@@ -128,11 +126,6 @@ def arr_to_img(img_array, enlarge_factor=15):
     img = Image.fromarray(enlarged_array, mode="L")  # 'L' mode is for grayscale
 
     return img
-    # # Save the image
-    # img.save('binary_image.png')
-
-    # If you want to display the image
-    st.image(img)
 
 
 # Basic streamlit setup
@@ -242,7 +235,6 @@ with agent_col:
             input_image = Image.fromarray(input_numpy_array.astype("uint8"), "RGBA")
             input_image_gs = input_image.convert("L")
             resized_gs = input_image_gs.resize((28, 28), Image.Resampling.LANCZOS)
-            # print(resized_gs)
             np_gs = np.array(resized_gs)
             st.session_state.canvas_image = np_gs
 
@@ -260,8 +252,6 @@ with agent_col:
             st.write("# {x}".format(x=st.session_state.canvas_int))
 
 
-# need to shape the data
-# df = pd.DataFrame(st.session_state.agent.story[0, :].reshape((28, 28)))
 with state_col:
     st.write("#### Agent State History")
     instruction_md = """
@@ -295,6 +285,7 @@ with state_col:
         i_arr = np.reshape(i_arr, [28, 28])
         i_img = arr_to_img(i_arr)
         st.image(i_img)
+        ## String version
         # formatted_I = ""
         # for i in range(28):
         #     formatted_I += (str(i_arr[i]) + "\n")
@@ -308,6 +299,7 @@ with state_col:
         q_arr = np.reshape(q_arr, [28, 28])
         q_img = arr_to_img(q_arr)
         st.image(q_img)
+        ## String version
         # formatted_Q = ""
         # for i in range(28):
         #     formatted_Q += (str(q_arr[i]) + "\n")
@@ -324,6 +316,7 @@ with state_col:
         st.image(z_img)
         st.write("  " + str(z_arr))
         st.write("Result as an integer label: " + str(z_int))
+        ## String version
         # print(np_gs)
 
     # st.image(resized_gs)
