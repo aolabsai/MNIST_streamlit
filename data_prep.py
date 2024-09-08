@@ -47,6 +47,10 @@ def random_sample(num_samples, samples, labels):
     return samples[index], labels[index]
 
 
+def down_sample_item(x, down=200):
+    f = np.vectorize(lambda x, down: 1 if x >= down else 0)
+    return f(x, down)
+
 def down_sample(image, down=200):
     down_image = np.zeros(image.shape)
     down_image[image < down] = 0
