@@ -24,21 +24,21 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     print(LABEL)
     if np.shape(LABEL)[0] == 0:
         for x in np.arange(user_STEPS):
-            print("NO LABEL")
+            print("step: " + str(x))
             # core method to run Agents
-            st.session_state.agent.next_state(INPUT, DD=False)
+            st.session_state.agent.next_state(INPUT, DD=False, unsequenced=True)
     else:
         print("labelled")
         # core method to run Agents
-        st.session_state.agent.next_state(INPUT, LABEL, DD=False)
+        st.session_state.agent.next_state(INPUT, LABEL, DD=False, unsequenced=True)
 
     # saving results
     s = st.session_state.agent.state
-    q = st.session_state.agent.arch.Q__flat
+    q_index = st.session_state.agent.arch.Q__flat
     # z = st.session_state.agent.arch.Z__flat
     z_index = st.session_state.agent.arch.Z__flat
     st.session_state.agent_qresponse = np.reshape(
-        st.session_state.agent.story[s - 1, q], [28, 28]
+        st.session_state.agent.story[s - 1, q_index], [28, 28]
     )
     # st.session_state.agent_zresponse = st.session_state.agent.story[s, z]
     z = st.session_state.agent.story[s - 1, z_index]
@@ -65,35 +65,23 @@ def run_trials(is_training, num_trials, user_STEPS):
         and len(st.session_state.training_sets) > 1
     ):
         font_in, font_out = data.select_training_fonts(st.session_state.training_sets)
-        # print(font_in)
-        # print(font_in)
         selected_in = np.append(selected_in, font_in, axis=0)
         selected_z = np.append(selected_z, font_out, axis=0)
-        # selected_z.extend(font_out)
 
     correct_responses = 0
-    # print(len(selected_in))
     num_trials = len(selected_in)
 
-     # Being used to test next_state_batch
     if is_training:
-        # func = np.vectorize(lambda x: 1 if x >= 200 else 0)
-        # func = np.vectorize(data.down_sample_item)
-        INPUT = data.down_sample_item(selected_in).reshape(num_trials, 784)
+        INPUT = data.down_sample(selected_in).reshape(num_trials, 784)
         st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
-        print("now training")
-        st.session_state.agent._update_neuron_data(unsequenced=True)
-        print("neurons updated")
-
+        print("Training complete; neurons updated.")
         return
 
     for t in np.arange(num_trials):
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
-        # print(INPUT)
         LABEL = selected_z[t]
         if is_training:
             user_STEPS = 1
-            # print(INPUT)
             run_agent(user_STEPS, INPUT, LABEL)
             print("Trained on " + str(t))
         else:
@@ -271,13 +259,10 @@ with agent_col:
             st.write("Drawing identified as:")
             st.write("# {x}".format(x=st.session_state.canvas_int))
 
-
-# need to shape the data
-# df = pd.DataFrame(st.session_state.agent.story[0, :].reshape((28, 28)))
 with state_col:
     st.write("#### Agent State History")
     instruction_md = """
-    Since our agents fall under reinforcement learning, they maintain an internal state that changes from step to step. \n
+    Since our agents apply a form of reinforcement learning, they maintain an internal state that changes from step to step. \n
     The internal state of the agent is displayed below. Each state that the agent has held is accessible through the <number input> field, with greater numbers representing more recent states. \n
     The input and output layers can be seen as direct parallels to traditonal inputs and outputs, the internal layer is where WNNs differ from what you're used to seeing. \n 
     """
@@ -307,10 +292,6 @@ with state_col:
         i_arr = np.reshape(i_arr, [28, 28])
         i_img = arr_to_img(i_arr)
         st.image(i_img)
-        # formatted_I = ""
-        # for i in range(28):
-        #     formatted_I += (str(i_arr[i]) + "\n")
-        # st.text(formatted_I)
 
     with Q_col:
         st.write("##### Inner State")
@@ -320,10 +301,6 @@ with state_col:
         q_arr = np.reshape(q_arr, [28, 28])
         q_img = arr_to_img(q_arr)
         st.image(q_img)
-        # formatted_Q = ""
-        # for i in range(28):
-        #     formatted_Q += (str(q_arr[i]) + "\n")
-        # st.text(formatted_Q)
 
     with Z_col:
         st.write("##### Output State")
@@ -336,7 +313,3 @@ with state_col:
         st.image(z_img)
         st.write("  " + str(z_arr))
         st.write("Result as an integer label: " + str(z_int))
-        # print(np_gs)
-
-    # st.image(resized_gs)
-    # input_image_gs_np = np.asarray(input_image_gs.getdata()).reshape(280, 280)
