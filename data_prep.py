@@ -60,8 +60,11 @@ def down_sample(image, down=200):
 
 def get_font_data(filename):
     df = pd.read_excel(filename)
+    # cut off dataframe at end of valid columns
     df = df.iloc[:, :145]
     arr = df.to_numpy()
+    # spreadsheet has two layers of digits
+    # this moves them into the same layer
     arr = np.append(arr[:28], arr[30:58], axis=1)
     arr = np.delete(arr, [28 + 29 * i for i in range(10)], axis=1)
     ret_arr = np.zeros((10, 28, 28), dtype=np.uint8)
@@ -70,10 +73,15 @@ def get_font_data(filename):
             for c in range(28):
                 # TODO: python is complaining about some cells being cast from NaN,
                 #       but it seems to work anyways. Find a fix for this
+
+                # Multiplying by 255 so it downsamples correctly
+                # print("file: {}, digit: {}, r:, {}, c: {}".format(filename, i, r, c))
                 ret_arr[i][r][c] = 255 * arr[r][c + 28 * i]
+    # Convert labels
     label_to_binary = np.zeros([10, 4], dtype="int8")
     for i in np.arange(10):
         label_to_binary[i] = np.array(list(np.binary_repr(i, 4)), dtype=int)
+
     return (ret_arr, np.array([label_to_binary[i] for i in range(10)]))
 
 
@@ -82,7 +90,6 @@ def get_all_fonts():
     items = listdir(folder)
     fonts = {}
     for item in items:
-        # print(item)
         if not isfile(join(folder, item)):
             continue
         file = join(folder, item)

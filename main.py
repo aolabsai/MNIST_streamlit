@@ -11,6 +11,7 @@ from arch_MNIST import arch
 def streamlit_setup():
     if "agent" not in st.session_state:
         st.session_state.agent = setup_agent()
+    return
 
 
 def setup_agent():
@@ -95,6 +96,7 @@ def run_trials(is_training, num_trials, user_STEPS):
     st.session_state.correct_responses = correct_responses
     st.session_state.trial_result = trial_result
     print("Correct on {x}%".format(x=trial_result))
+    return correct_responses
 
 
 def run_canvas():
@@ -108,8 +110,10 @@ def run_canvas():
     print(response)
     response_int = int("".join(str(x) for x in response), 2)
     st.session_state.canvas_int = response_int
+    return
 
 
+# Used to construct images of agent state
 def arr_to_img(img_array, enlarge_factor=15):
     # Convert the binary array to a numpy array
     img_array = np.array(img_array, dtype=np.uint8)
@@ -128,11 +132,6 @@ def arr_to_img(img_array, enlarge_factor=15):
     img = Image.fromarray(enlarged_array, mode="L")  # 'L' mode is for grayscale
 
     return img
-    # # Save the image
-    # img.save('binary_image.png')
-
-    # If you want to display the image
-    st.image(img)
 
 
 # Basic streamlit setup
@@ -242,7 +241,6 @@ with agent_col:
             input_image = Image.fromarray(input_numpy_array.astype("uint8"), "RGBA")
             input_image_gs = input_image.convert("L")
             resized_gs = input_image_gs.resize((28, 28), Image.Resampling.LANCZOS)
-            # print(resized_gs)
             np_gs = np.array(resized_gs)
             st.session_state.canvas_image = np_gs
 
@@ -313,3 +311,4 @@ with state_col:
         st.image(z_img)
         st.write("  " + str(z_arr))
         st.write("Result as an integer label: " + str(z_int))
+

@@ -30,7 +30,7 @@ RUN mkdir -p -m 0600 ~/.ssh && \
 #   Note: access to ao_core requires a private beta license; request yours via https://calendly.com/aee/aolabs or https://discord.com/invite/nHuJc4Y4n7
 RUN --mount=type=ssh \
     pip install git+ssh://git@github.com/aolabsai/ao_core.git \
-                git+git://github.com/aolabsai/ao_arch.git 
+                git+ssh://git@github.com/aolabsai/ao_arch.git 
 
 COPY . /app
 
