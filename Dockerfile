@@ -1,44 +1,47 @@
-# app/Dockerfile
-# Based on https://docs.streamlit.io/deploy/tutorials/docker
+# ao_app/Dockerfile
 
-# First, build this container with the 4 commands below in your terminal:
+# First, build this container by running the 2 commands below in a Git Bash terminal:
 # $ export DOCKER_BUILDKIT=1
-# $ eval `ssh-agent`
-# $ ssh-add ~/.ssh/<key here>
-# $ docker build -t "streamlit" --ssh default .
+# $ docker build --secret id=env,src=.env -t "ao_app" .
 
 # Then, run the container with this command:
-# $ docker run -p 8501:8501 streamlit
+# $ docker run -p 8501:8501 "ao_app"
+
+# You can then access your app at: http://localhost:8501/
+
 
 FROM python:3.12-slim
 
+# Create a directory for the app in the container
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    software-properties-common \
-    git \
-    openssh-client \
-    && rm -rf /var/lib/apt/lists/*
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
-# Tell docker what hosts it can connect to and hash them so it isn't in plaintext
-RUN mkdir -p -m 0600 ~/.ssh && \
-    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+# Install git and other necessary packages
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Mount the ssh-agent so it can install from private repos 
-#   Note: access to ao_core requires a private beta license; request yours via https://calendly.com/aee/aolabs or https://discord.com/invite/nHuJc4Y4n7
-RUN --mount=type=ssh \
-    pip install git+ssh://git@github.com/aolabsai/ao_core.git \
-                git+ssh://git@github.com/aolabsai/ao_arch.git 
-
+# Copy the app code including the requirements file 
 COPY . /app
 
-# Install standard requirements
+# Install dependencies from the requirements file
 RUN pip install -r requirements.txt
+
+# Install AO modules, ao_core and ao_arch
+#    Notes: - ao_core is a private repo; say hi for access: https://calendly.com/aee/aolabs or https://discord.com/invite/nHuJc4Y4n7
+#           - already have access? generate your Personal Access Token from github here: https://github.com/settings/tokens?type=beta 
+RUN --mount=type=secret,id=env,target=/app/.env \
+    export $(grep -v '^#' .env | xargs) && \
+    pip install git+https://${ao_github_PAT}@github.com/aolabsai/ao_core.git
+RUN pip install git+https://github.com/aolabsai/ao_arch.git
 
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "main.py", "--server.port=8501"]
