@@ -5,7 +5,7 @@ from streamlit_drawable_canvas import st_canvas
 import data_prep as data
 
 import ao_core as ao
-from arch_MNIST import arch
+from arch__MNIST import arch
 
 
 def streamlit_setup():
