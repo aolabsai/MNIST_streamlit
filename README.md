@@ -4,6 +4,8 @@ Maintainer: [spolisar](https://github.com/spolisar), shane@aolabs.ai
 
 A streamlit app where users can train an weightless neural network agent to identify hand-drawn digits (0-9) from the [MNIST dataset](https://en.wikipedia.org/wiki/MNIST_database).
 
+![example of MNIST digits from Wiki](https://en.wikipedia.org/wiki/MNIST_database#/media/File:MnistExamplesModified.png)
+
 According to the [world leaderboard](https://paperswithcode.com/sota/image-classification-on-mnist), the highest accuracy achieved on MNIST is 99.87% by a variant of convolutional neural networkss (CNNs or cov-nets), with ~1.5M parameters trained on 60k training pairs. That accuracy is impressive but comes with the same limitations as larger pre-trained neural models (GPT is ~200B+ parameters nowawdays) that still hallucinate and can't learn around their mistakes.
 
 AO labs is building AI agents than can learn after training. 
