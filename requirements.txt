@@ -1,12 +1,13 @@
-numpy
-streamlit
-streamlit-drawable-canvas
-Pillow
-openpyxl
-
 # AO modules
 #   to run this streamlit app locally without/outside of the docker container,
 #   uncomment the two "git+" lines below to pip install these modules from their repos (you'll be prompted to authenticate via GitHub)
 # git+https://github.com/aolabsai/ao_core
 # git+https://github.com/aolabsai/ao_arch
 #   otherwise if using the conainter, AO modules are installed instead through the dockerfile via SSH
+#
+numpy
+streamlit
+streamlit-drawable-canvas
+Pillow
+openpyxl
+

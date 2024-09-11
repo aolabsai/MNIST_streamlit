@@ -6,8 +6,6 @@ A streamlit app where users can train an weightless neural network agent to iden
 
 ![example of MNIST digits from Wiki](misc/mnist_example_wiki.png)
 
-
-
 According to the [world leaderboard](https://paperswithcode.com/sota/image-classification-on-mnist), the highest accuracy achieved on MNIST is 99.87% by a variant of convolutional neural networkss (CNNs or cov-nets), with ~1.5M parameters trained on 60k training pairs. That accuracy is impressive but comes with the same limitations as larger pre-trained neural models (GPT is ~200B+ parameters nowawdays) that still hallucinate and can't learn around their mistakes.
 
 AO labs is building AI agents than can learn after training. 
@@ -19,7 +17,7 @@ In arch__MNIST.py, you can view the agent's particular neural architecture and t
 
 ## Installation & Setup
 
-You can run this app in a docker container (recommended) or directly on your local environment. You'll need to `pip install` from our private repo ao_core, which is currently private beta-- say hi on our [discord](https://discord.com/invite/nHuJc4Y4n7) for access!
+You can run this app in a docker container (recommended) or directly on your local environment. You'll need to `pip install` from our private repo ao_core, which is currently in private beta-- say hi on our [discord](https://discord.com/invite/nHuJc4Y4n7) for access!
 
 
 ### Docker Installation
@@ -55,7 +53,7 @@ streamlit run main.py
 You're done! Access the app at `localhost:8501` in your browser.
 
 
-## How do these agents work?
+## How Do These Agents Work?
 Agents have 3 layers here, an input layer, state layer, and output layer. 
 
 The input layer is where digit images are fed into the agent, before the agent sees the input we downsample it so grayscale values above 200 become 1 and below 200 become 0 then flatten the array. This gives us an input array of 784 0s and 1s.
@@ -66,7 +64,7 @@ The output layer is 4 binary digits representing the agent's prediction, which c
 
 Each of these layers are viewable on the right side of the streamlit app. Between running the agent on inputs, the agent is reset to a randomized state since identifying digits is not a continual process where the previous input should have an effect on the next input.
 
-## Files Structure
+## File Structure
 arch__MNIST.py - defines how the agent's neural architecture (how many neurons and how they're connected)
 mnist.pkl.gz - the MNIST training data (60k training and 10k testing pairs)
 Fonts/ - has training data constructed from existing fonts such as Arial, Times New Roman, etc.
@@ -76,4 +74,4 @@ Fonts/ - has training data constructed from existing fonts such as Arial, Times 
 - There are a couple cells in the Font training sets that seem to be causing errors without breaking anything, identifying and fixing those cells would be good
 
 ## Contributing
-Fork the repo, make your changes and submit a pull request.
+Fork the repo, make your changes and submit a pull request. Join our [discord](https://discord.com/invite/nHuJc4Y4n7) and say hi!
