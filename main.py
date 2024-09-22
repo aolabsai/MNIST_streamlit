@@ -15,7 +15,7 @@ def streamlit_setup():
 
 
 def setup_agent():
-    agent = ao.Agent(arch)
+    agent = ao.Agent(arch, save_meta=False)
     return agent
 
 
