@@ -186,7 +186,7 @@ with st.sidebar:
                 options=pickle_files
             )
 
-            if st.button(f"Load {selected_file[:-10]}"):
+            if st.button(f"Load {selected_file}"):
                 file_path = os.path.join(directory, selected_file)
                 st.session_state.agent = ao.Agent.unpickle(file_path)
                 st.session_state.agent._update_neuron_data()
