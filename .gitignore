@@ -6,3 +6,6 @@ venv/
 
 #enviroment variables and secrets
 .env
+
+#agent data
+.ao.pickle

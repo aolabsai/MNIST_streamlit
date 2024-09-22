@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import streamlit as st
 from PIL import Image
@@ -15,7 +16,7 @@ def streamlit_setup():
 
 
 def setup_agent():
-    agent = ao.Agent(arch, save_meta=False)
+    agent = ao.Agent(arch, notes="new_agent", save_meta=False)
     return agent
 
 
@@ -152,8 +153,63 @@ streamlit_setup()
 st.title("Understanding WNNs through MNIST")
 st.write("### *a benchmark & demo by [aolabs.ai](https://www.aolabs.ai/)*")
 
-train_max = 20000
-test_max = 10000
+train_max = 1000
+test_max = 1000
+
+with st.sidebar:
+    st.write("## Current Active Agent:")
+    st.write(st.session_state.agent.notes)
+
+    st.write("---")
+    st.write("## Load Agent:")
+
+    def load_pickle_files(directory):
+        pickle_files = [f[:-10] for f in os.listdir(directory) if f.endswith('.ao.pickle')]  # [:-10] is to remove "ao.pickle"
+        return pickle_files
+
+    directory_option = st.radio(
+        "Choose directory to retrieve Agents:",
+        ("App working directory", "Custom directory"),
+        label_visibility="collapsed"
+    )
+    if directory_option == "App working directory": 
+        directory = os.path.dirname(os.path.abspath(__file__))
+    else: 
+        directory = st.text_input("Enter a custom directory path:")
+
+    if directory:
+        pickle_files = load_pickle_files(directory)
+
+        if pickle_files:
+            selected_file = st.selectbox(
+                "Choose from saved Agents:",
+                options=pickle_files
+            )
+
+            # st.write(f"You selected: {selected_file}")
+
+            if st.button(f"Load {selected_file[:-10]}"):
+                file_path = os.path.join(directory, selected_file)
+                st.session_state.agent = ao.Agent.unpickle(file_path)
+                st.session_state.agent._update_neuron_data()
+                st.write("Agent loaded")
+        else:
+            st.warning("No pickle files found in the selected directory.")
+
+    st.write("---")
+    st.write("## Save Agent:")
+
+    agent_name = st.text_input("## *Optional* Rename active Agent:", value=st.session_state.agent.notes)
+
+    @st.dialog("Save successful!")
+    def modal_dialog():
+        st.write("Agent saved to your local disk (in the same directory as this app).")
+
+    agent_name = agent_name.split("\\")[-1].split(".")[0]
+    if st.button("Save "+agent_name):
+        st.session_state.agent.pickle(agent_name)
+        modal_dialog()
+
 
 agent_col, state_col = st.columns(2)
 
