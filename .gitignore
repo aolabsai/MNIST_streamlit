@@ -8,4 +8,4 @@ venv/
 .env
 
 #agent data
-.ao.pickle
+*.ao.pickle

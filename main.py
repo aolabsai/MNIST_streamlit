@@ -164,7 +164,7 @@ with st.sidebar:
     st.write("## Load Agent:")
 
     def load_pickle_files(directory):
-        pickle_files = [f[:-10] for f in os.listdir(directory) if f.endswith('.ao.pickle')]  # [:-10] is to remove "ao.pickle"
+        pickle_files = [f[:-10] for f in os.listdir(directory) if f.endswith('.ao.pickle')]  # [:-10] is to remove the "ao.pickle" file extension
         return pickle_files
 
     directory_option = st.radio(
@@ -185,8 +185,6 @@ with st.sidebar:
                 "Choose from saved Agents:",
                 options=pickle_files
             )
-
-            # st.write(f"You selected: {selected_file}")
 
             if st.button(f"Load {selected_file[:-10]}"):
                 file_path = os.path.join(directory, selected_file)
