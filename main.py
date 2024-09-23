@@ -20,6 +20,16 @@ def setup_agent():
     return agent
 
 
+def initialize_session_state():
+    if 'interrupt' not in st.session_state:
+        st.session_state.interrupt = False
+
+def reset_interrupt():
+    st.session_state.interrupt = False
+
+def set_interrupt():
+    st.session_state.interrupt = True
+
 def run_agent(user_STEPS, INPUT, LABEL=[]):
     # running the Agent
     st.session_state.agent.reset_state()
@@ -50,6 +60,9 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
 
 
 def run_trials(is_training, num_trials, user_STEPS):
+
+    initialize_session_state()
+
     trialset = data.MN_TRAIN if is_training else data.MN_TEST
     trialset_z = data.MN_TRAIN_Z if is_training else data.MN_TEST_Z
 
@@ -80,6 +93,11 @@ def run_trials(is_training, num_trials, user_STEPS):
         return
 
     for t in np.arange(num_trials):
+
+        if st.session_state.interrupt:
+            st.warning("Function interrupted! Click the *Resume Processing* button to enable training/testing again.")
+            break
+
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
         LABEL = selected_z[t]
         if is_training:
@@ -156,6 +174,7 @@ st.write("### *a benchmark & demo by [aolabs.ai](https://www.aolabs.ai/)*")
 train_max = 1000
 test_max = 1000
 
+############################################################################
 with st.sidebar:
     st.write("## Current Active Agent:")
     st.write(st.session_state.agent.notes)
@@ -238,6 +257,7 @@ with st.sidebar:
     if st.button("Prepare Activate Agent for Download"):
         agent_pickle = st.session_state.agent.pickle(download=True)
         modal_dialog_3(agent_pickle)
+############################################################################
 
 agent_col, state_col = st.columns(2)
 
@@ -260,12 +280,15 @@ with agent_col:
             train_max,
             value=0,
         )
-        st.button(
+        if st.button(
             "Train Agent",
             on_click=run_trials,
             args=(True, train_count, 1),
             disabled=len(st.session_state.training_sets) == 0,
-        )
+        ):
+            run_trials(True, train_count, 1)
+        start_button = st.button("Resume Processing", on_click=reset_interrupt)
+        stop_button = st.button("Stop Processing", on_click=set_interrupt)
 
         st.write("##### Testing")
         st.write(
