@@ -16,7 +16,7 @@ def streamlit_setup():
 
 
 def setup_agent():
-    agent = ao.Agent(arch, notes="default_agent", save_meta=False)
+    agent = ao.Agent(arch, notes="Default Agent", save_meta=False)
     return agent
 
 
@@ -188,7 +188,7 @@ with st.sidebar:
 
             if st.button(f"Load {selected_file}"):
                 file_path = os.path.join(directory, selected_file)
-                st.session_state.agent = ao.Agent.unpickle(file_path)
+                st.session_state.agent = ao.Agent.unpickle(file = file_path, custom_name = selected_file)
                 st.session_state.agent._update_neuron_data()
                 st.write("Agent loaded")
         else:
@@ -198,6 +198,7 @@ with st.sidebar:
     st.write("## Save Agent:")
 
     agent_name = st.text_input("## *Optional* Rename active Agent:", value=st.session_state.agent.notes)
+    st.session_state.agent.notes = agent_name
 
     @st.dialog("Save successful!")
     def modal_dialog():
@@ -208,6 +209,35 @@ with st.sidebar:
         st.session_state.agent.pickle(agent_name)
         modal_dialog()
 
+    st.write("---")
+    st.write("## Download/Upload Agents:")
+
+    @st.dialog("Upload successful!")
+    def modal_dialog_2():
+        st.write("Agent uploaded and ready as *Newly Uploaded Agent*, which you can rename during saving.")
+
+    uploaded_file = st.file_uploader("Upload .ao.pickle files here", label_visibility="collapsed")
+    if uploaded_file is not None:
+        if st.button("Confirm Agent Upload"):
+            st.session_state.agent = ao.Agent.unpickle(uploaded_file, custom_name="Newly Uploaded Agent", upload=True)
+            st.session_state.agent._update_neuron_data()
+            modal_dialog_2()
+
+    @st.dialog("Download ready")
+    def modal_dialog_3(agent_pickle):
+        st.write("The Agent's .ao.pickle file will be saved to your default Downloads folder.")
+
+        # Create a download button
+        st.download_button(
+            label="Download Agent: "+st.session_state.agent.notes,
+            data=agent_pickle,
+            file_name=st.session_state.agent.notes,
+            mime="application/octet-stream"
+        )
+
+    if st.button("Prepare Activate Agent for Download"):
+        agent_pickle = st.session_state.agent.pickle(download=True)
+        modal_dialog_3(agent_pickle)
 
 agent_col, state_col = st.columns(2)
 
@@ -316,7 +346,7 @@ with state_col:
     instruction_md = """
     Since our agents apply a form of reinforcement learning, they maintain an internal state that changes from step to step. \n
     The internal state of the agent is displayed below. Each state that the agent has held is accessible through the <number input> field, with greater numbers representing more recent states. \n
-    The input and output layers can be seen as direct parallels to traditonal inputs and outputs, the internal layer is where WNNs differ from what you're used to seeing. \n 
+    The input and output layers can be seen as direct parallels to traditional inputs and outputs, the internal layer is where WNNs differ from what you're used to seeing. \n 
     """
     with st.expander("About"):
         st.markdown(instruction_md)
