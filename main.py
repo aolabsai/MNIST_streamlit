@@ -21,14 +21,17 @@ def setup_agent():
 
 
 def initialize_session_state():
-    if 'interrupt' not in st.session_state:
+    if "interrupt" not in st.session_state:
         st.session_state.interrupt = False
+
 
 def reset_interrupt():
     st.session_state.interrupt = False
 
+
 def set_interrupt():
     st.session_state.interrupt = True
+
 
 def run_agent(user_STEPS, INPUT, LABEL=[]):
     # running the Agent
@@ -60,7 +63,7 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
 
 
 def run_trials(is_training, num_trials, user_STEPS):
-    
+
     initialize_session_state()
 
     trialset = data.MN_TRAIN if is_training else data.MN_TEST
@@ -96,11 +99,13 @@ def run_trials(is_training, num_trials, user_STEPS):
     for t in np.arange(num_trials):
 
         @st.dialog("Process Interrupted")
-        def modal_dialog_4():
-            st.warning("Function interrupted! Click the *Re-Enable Processing* button in the sidebar to train/test again.")
+        def interrupt_modal_dialog():
+            st.warning(
+                "Function interrupted! Click the *Re-Enable Processing* button in the sidebar to train/test again."
+            )
 
         if st.session_state.interrupt:
-            modal_dialog_4()
+            interrupt_modal_dialog()
             break
 
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
@@ -186,14 +191,24 @@ with st.sidebar:
     st.write("## Current Active Agent:")
     st.write(st.session_state.agent.notes)
 
-    start_button = st.button("Re-Enable Training & Testing", on_click=reset_interrupt, help="If you stopped a process, click here to re-enable Testing/Training agents again.")
-    stop_button = st.button("Stop Testing", on_click=set_interrupt, help="Click to stop a current Test if it is taking too long.")
+    start_button = st.button(
+        "Re-Enable Training & Testing",
+        on_click=reset_interrupt,
+        help="If you stopped a process\n click to re-enable Testing/Training agents.",
+    )
+    stop_button = st.button(
+        "Stop Testing",
+        on_click=set_interrupt,
+        help="Click to stop a current Test if it is taking too long.",
+    )
 
     st.write("---")
     st.write("## Load Agent:")
 
     def load_pickle_files(directory):
-        pickle_files = [f[:-10] for f in os.listdir(directory) if f.endswith('.ao.pickle')]  # [:-10] is to remove the "ao.pickle" file extension
+        pickle_files = [
+            f[:-10] for f in os.listdir(directory) if f.endswith(".ao.pickle")
+        ]  # [:-10] is to remove the "ao.pickle" file extension
         return pickle_files
 
     # directory_option = st.radio(
@@ -201,9 +216,9 @@ with st.sidebar:
     #     ("App working directory", "Custom directory"),
     #     label_visibility="collapsed"
     # )
-    # if directory_option == "App working directory": 
+    # if directory_option == "App working directory":
     directory = os.path.dirname(os.path.abspath(__file__))
-    # else: 
+    # else:
     #     directory = st.text_input("Enter a custom directory path:")
 
     if directory:
@@ -211,13 +226,14 @@ with st.sidebar:
 
         if pickle_files:
             selected_file = st.selectbox(
-                "Choose from saved Agents:",
-                options=pickle_files
+                "Choose from saved Agents:", options=pickle_files
             )
 
             if st.button(f"Load {selected_file}"):
                 file_path = os.path.join(directory, selected_file)
-                st.session_state.agent = ao.Agent.unpickle(file = file_path, custom_name = selected_file)
+                st.session_state.agent = ao.Agent.unpickle(
+                    file=file_path, custom_name=selected_file
+                )
                 st.session_state.agent._update_neuron_data()
                 st.write("Agent loaded")
         else:
@@ -226,47 +242,57 @@ with st.sidebar:
     st.write("---")
     st.write("## Save Agent:")
 
-    agent_name = st.text_input("## *Optional* Rename active Agent:", value=st.session_state.agent.notes)
+    agent_name = st.text_input(
+        "## *Optional* Rename active Agent:", value=st.session_state.agent.notes
+    )
     st.session_state.agent.notes = agent_name
 
     @st.dialog("Save successful!")
-    def modal_dialog():
+    def save_modal_dialog():
         st.write("Agent saved to your local disk (in the same directory as this app).")
 
     agent_name = agent_name.split("\\")[-1].split(".")[0]
-    if st.button("Save "+agent_name):
+    if st.button("Save " + agent_name):
         st.session_state.agent.pickle(agent_name)
-        modal_dialog()
+        save_modal_dialog()
 
     st.write("---")
     st.write("## Download/Upload Agents:")
 
     @st.dialog("Upload successful!")
-    def modal_dialog_2():
-        st.write("Agent uploaded and ready as *Newly Uploaded Agent*, which you can rename during saving.")
+    def upload_modal_dialog():
+        st.write(
+            "Agent uploaded and ready as *Newly Uploaded Agent*, which you can rename during saving."
+        )
 
-    uploaded_file = st.file_uploader("Upload .ao.pickle files here", label_visibility="collapsed")
+    uploaded_file = st.file_uploader(
+        "Upload .ao.pickle files here", label_visibility="collapsed"
+    )
     if uploaded_file is not None:
         if st.button("Confirm Agent Upload"):
-            st.session_state.agent = ao.Agent.unpickle(uploaded_file, custom_name="Newly Uploaded Agent", upload=True)
+            st.session_state.agent = ao.Agent.unpickle(
+                uploaded_file, custom_name="Newly Uploaded Agent", upload=True
+            )
             st.session_state.agent._update_neuron_data()
-            modal_dialog_2()
+            upload_modal_dialog()
 
     @st.dialog("Download ready")
-    def modal_dialog_3(agent_pickle):
-        st.write("The Agent's .ao.pickle file will be saved to your default Downloads folder.")
+    def download_modal_dialog(agent_pickle):
+        st.write(
+            "The Agent's .ao.pickle file will be saved to your default Downloads folder."
+        )
 
         # Create a download button
         st.download_button(
-            label="Download Agent: "+st.session_state.agent.notes,
+            label="Download Agent: " + st.session_state.agent.notes,
             data=agent_pickle,
             file_name=st.session_state.agent.notes,
-            mime="application/octet-stream"
+            mime="application/octet-stream",
         )
 
     if st.button("Prepare Activate Agent for Download"):
         agent_pickle = st.session_state.agent.pickle(download=True)
-        modal_dialog_3(agent_pickle)
+        download_modal_dialog(agent_pickle)
 ############################################################################
 
 agent_col, state_col = st.columns(2)
@@ -278,7 +304,10 @@ with agent_col:
         training_set_options = list(data.FONTS.keys())
         training_set_options.insert(0, "MNIST")
         st.session_state.training_sets = st.multiselect(
-            "Select training datasets:", options=training_set_options, default=("MNIST"), help="When training on standard fonts (eg. Times New Roman, Arial, etc.), it trains on all of the digits of that font."
+            "Select training datasets:",
+            options=training_set_options,
+            default=("MNIST"),
+            help="When training on standard fonts (eg. Times New Roman, Arial, etc.), it trains on all of the digits of that font.",
         )
 
         train_count = st.number_input(
@@ -286,7 +315,7 @@ with agent_col:
             0,
             train_max,
             value=0,
-            help="Randomly selected from MNIST's 60k training set."
+            help="Randomly selected from MNIST's 60k training set.",
         )
         st.button(
             "Train Agent",
@@ -299,11 +328,19 @@ with agent_col:
         t_count, t_steps = st.columns(2)
         with t_count:
             test_count = st.number_input(
-                "Number of test images", 1, test_max, value=1, help="Randomly selected from MNIST's 10k test set."
+                "Number of test images",
+                1,
+                test_max,
+                value=1,
+                help="Randomly selected from MNIST's 10k test set.",
             )
         with t_steps:
             user_STEPS = st.number_input(
-                "Number of steps per test image:", 1, 20, value=10, help="10 is a good default; this level of agent usually converges on a stable pattern after ~7 steps (if you've trained it enough)."
+                "Number of steps per test image:",
+                1,
+                20,
+                value=10,
+                help="10 is a good default; this level of agent usually converges on a stable pattern after ~7 steps (if you've trained it enough).",
             )
         st.button(
             "Test Agent", on_click=run_trials, args=(False, test_count, user_STEPS)
@@ -316,14 +353,15 @@ with agent_col:
             st.write("##### Test Results")
             st.write(
                 "The agent predicted {correct} out of {total} images correctly, an accuracy of:".format(
-                    correct=st.session_state.correct_responses, total=st.session_state.num_trials_actual
+                    correct=st.session_state.correct_responses,
+                    total=st.session_state.num_trials_actual,
                 )
             )
             st.write("# {result}%".format(result=st.session_state.trial_result))
-            
+
     with st.expander("#### Continuous Learning", expanded=True):
         st.write(
-            "You can also train or test your agent on custom inputs made using the canvas below-- try drawing a new number."
+            "You can also train or test your agent on custom inputs made using the canvas below-- try drawing a digit."
         )
 
         t_canvas, t_label = st.columns(2)
@@ -391,7 +429,9 @@ with state_col:
         min_value,
         st.session_state.agent.state,
         value=st.session_state.agent.state - 1,
-        help="The agent has history up until state: {}".format(st.session_state.agent.state),
+        help="The agent has history up until state: {}".format(
+            st.session_state.agent.state
+        ),
     )
 
     I_col, Q_col, Z_col = st.columns(3)
