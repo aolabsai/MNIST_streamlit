@@ -1,8 +1,10 @@
 import os
 import numpy as np
 import streamlit as st
-from PIL import Image
 from streamlit_drawable_canvas import st_canvas
+import streamlit_analytics2
+from PIL import Image
+
 import data_prep as data
 
 import ao_core as ao
@@ -164,17 +166,17 @@ def arr_to_img(img_array, enlarge_factor=15):
 
     return img
 
-
+streamlit_analytics2.start_tracking()
 # Basic streamlit setup
 st.set_page_config(
-    page_title="AO Labs Demo App",
-    page_icon="https://i.imgur.com/j3jalQE.png",
+    page_title="MNIST Demo by AO Labs",
+    page_icon="misc/ao_favicon.png",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        "Get Help": "mailto:ali@aolabs.ai",
-        "Report a bug": "mailto:ali@aolabs.ai",
-        "About": "This is a demo of our AI features. Check out www.aolabs.ai and www.docs.aolabs.ai for more. Thank you!",
+        "Get Help": "https://discord.gg/Zg9bHPYss5",
+        "Report a bug": "mailto:eng@aolabs.ai",
+        "About": "AO Labs builds next-gen AI models that learn after training; learn more at docs.aolabs.ai/docs/mnist-benchmark",
     },
 )
 
@@ -469,9 +471,11 @@ with state_col:
 st.write("---")
 footer_md = """
     [View & fork the code behind this application here.](https://github.com/aolabsai/MNIST_streamlit) \n
-    To learn more about WWNs and the new generation of AI we're developing at AO Labs, [visit our docs.aolabs.ai.](https://docs.aolabs.ai/docs/mnist-benchmark)\n
+    To learn more about Weightless Neural Networks and the new generation of AI we're developing at AO Labs, [visit our docs.aolabs.ai.](https://docs.aolabs.ai/docs/mnist-benchmark)\n
     \n
     We eagerly welcome contributors and hackers at all levels! [Say hi on our discord.](https://discord.gg/Zg9bHPYss5)
     """
 st.markdown(footer_md)
 st.image("misc/aolabs-logo-horizontal-full-color-white-text.png", width=300)
+
+streamlit_analytics2.stop_tracking()

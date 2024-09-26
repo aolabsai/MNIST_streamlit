@@ -8,6 +8,6 @@
 numpy
 streamlit
 streamlit-drawable-canvas
+streamlit_analytics2
 Pillow
 openpyxl
-

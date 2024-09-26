@@ -26,8 +26,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy the app code including the requirements file 
+# Copy the app code including the requirements file
 COPY . /app
+COPY misc/index.html /usr/local/lib/python3.12/site-packages/streamlit/static/index.html
 
 # Install dependencies from the requirements file
 RUN pip install -r requirements.txt
