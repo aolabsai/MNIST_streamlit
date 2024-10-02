@@ -54,7 +54,7 @@ You're done! Access the app at `localhost:8501` in your browser.
 
 
 ## How Do These Agents Work?
-Agents weightless neural network state machines made up of 3 layers, an input layer, an inner state, and output state. 
+Agents are weightless neural network state machines made up of 3 layers, an input layer, an inner state, and output state. 
 
 The input layer takes in the 28x28 pixel MNIST images, downsampled to B&W, as an an input array of 784 binary digits.
 
