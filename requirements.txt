@@ -3,7 +3,7 @@
 #   uncomment the two "git+" lines below to pip install these modules from their repos (you'll be prompted to authenticate via GitHub)
 # git+https://github.com/aolabsai/ao_core
 # git+https://github.com/aolabsai/ao_arch
-#   otherwise if using the conainter, AO modules are installed instead through the dockerfile via SSH
+#   otherwise if using the conainter, AO modules are installed instead through the dockerfile
 #
 numpy
 streamlit

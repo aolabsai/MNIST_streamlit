@@ -185,8 +185,8 @@ streamlit_setup()
 st.title("Understanding *Weightless* NNs via MNIST")
 st.write("### *a demo by [aolabs.ai](https://www.aolabs.ai/)*")
 
-train_max = 1000
-test_max = 1000
+train_max = 60000
+test_max = 10000
 
 ############################################################################
 with st.sidebar:

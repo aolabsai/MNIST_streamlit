@@ -38,7 +38,7 @@ RUN pip install -r requirements.txt
 #           - already have access? generate your Personal Access Token from github here: https://github.com/settings/tokens?type=beta 
 RUN --mount=type=secret,id=env,target=/app/.env \
     export $(grep -v '^#' .env | xargs) && \
-    pip install git+https://${ao_github_PAT}@github.com/aolabsai/ao_core.git@memory/int8
+    pip install git+https://${ao_github_PAT}@github.com/aolabsai/ao_core.git
 RUN pip install git+https://github.com/aolabsai/ao_arch.git
 
 EXPOSE 8501
