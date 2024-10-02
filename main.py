@@ -297,7 +297,7 @@ with st.sidebar:
             mime="application/octet-stream",
         )
 
-    if st.button("Prepare Activate Agent for Download"):
+    if st.button("Prepare Active Agent for Download"):
         agent_pickle = st.session_state.agent.pickle(download=True)
         download_modal_dialog(agent_pickle)
 ############################################################################
