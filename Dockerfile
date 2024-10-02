@@ -22,7 +22,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install git and other necessary packages
 RUN apt-get update && \
-    apt-get install -y git && \
+    apt-get install -y git python3-bs4 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -32,6 +32,8 @@ COPY . /app
 
 # Install dependencies from the requirements file
 RUN pip install -r requirements.txt
+
+RUN python add_meta_tags.py
 
 # Install AO modules, ao_core and ao_arch
 #    Notes: - ao_core is a private repo; say hi for access: https://calendly.com/aee/aolabs or https://discord.com/invite/nHuJc4Y4n7
