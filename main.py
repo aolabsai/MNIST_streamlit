@@ -98,7 +98,11 @@ def run_trials(is_training, num_trials, user_STEPS):
         return
 
     st.session_state.num_trials_actual = 0
+
+    progress_bar = st.progress(float(0))
     for t in np.arange(num_trials):
+        nt = t/num_trials
+        progress_bar.progress( nt, text="Testing in Progress")
 
         @st.dialog("Process Interrupted")
         def interrupt_modal_dialog():
@@ -130,6 +134,7 @@ def run_trials(is_training, num_trials, user_STEPS):
         st.session_state.trial_result = trial_result
         print("Correct on {x}%".format(x=trial_result))
         # return correct_responses
+    progress_bar.empty()
 
 
 def run_canvas():
