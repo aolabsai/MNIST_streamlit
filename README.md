@@ -10,7 +10,7 @@ According to the [world leaderboard](https://paperswithcode.com/sota/image-class
 
 AO labs is building AI agents than can learn after training. 
 
-Modern machine learning started on MNIST, so this is our MNIST benchmark. Our agents here are made up of 1572 trainable parameters in the form of weightless neurons (so no backprop) and you can train them on orders of magnitude smaller data (try 'em with 60 training inputs) to still get good results (60% accuracy on 60 samples!). More importantly, you can continuously (re)train the agent-- so if it makes a few mistakes with a particular number, draw new examples for it to learn from. You can also train the agent on standard fonts (like Times New Roman, Comic Sans, etc) in addition to MNIST training pairs.
+Modern machine learning started on MNIST, so this is our MNIST benchmark. Our agents here are made up of 784+4 trainable parameters in the form of weightless neurons (so no backprop) and you can train them on orders of magnitude less data (try 'em with 60 training inputs) to get good results (~60% accuracy on 60 samples!). More importantly, you can continuously (re)train the agent-- so if it makes a few mistakes with a particular number, draw new examples for it to learn from. You can also train the agent on standard fonts (like Times New Roman, Comic Sans, etc) in addition to MNIST training pairs.
 
 In arch__MNIST.py, you can view the agent's particular neural architecture and try your hand at how different configurations affect performance.
 
@@ -54,20 +54,20 @@ You're done! Access the app at `localhost:8501` in your browser.
 
 
 ## How Do These Agents Work?
-Agents have 3 layers here, an input layer, state layer, and output layer. 
+Agents are weightless neural network state machines made up of 3 layers, an input layer, an inner state, and output state. 
 
-The input layer is where digit images are fed into the agent, before the agent sees the input we downsample it so grayscale values above 200 become 1 and below 200 become 0 then flatten the array. This gives us an input array of 784 0s and 1s.
+The input layer takes in the 28x28 pixel MNIST images, downsampled to B&W, as an an input array of 784 binary digits.
 
-The state layer is an representation of how the agent 'understands' its input.
+The inner state layer is a representation of how the agent 'understands' its input.
 
-The output layer is 4 binary digits representing the agent's prediction, which can easily be converted into an int.
+The output layer is 4 binary digits representing the agent's prediction, which is converted into an integer to match the MNIST labels.
 
 Each of these layers are viewable on the right side of the streamlit app. Between running the agent on inputs, the agent is reset to a randomized state since identifying digits is not a continual process where the previous input should have an effect on the next input.
 
 ## File Structure
-arch__MNIST.py - defines how the agent's neural architecture (how many neurons and how they're connected)
-mnist.pkl.gz - the MNIST training data (60k training and 10k testing pairs)
-Fonts/ - has training data constructed from existing fonts such as Arial, Times New Roman, etc.
+- arch__MNIST.py - defines how the agent's neural architecture (how many neurons and how they're connected)
+- mnist.pkl.gz - the MNIST training data (60k training and 10k testing pairs)
+- Fonts/ - has training data constructed from existing fonts such as Arial, Times New Roman, etc.
 
 ## Future Work
 - We may add the ability to download and upload trained agents in the future

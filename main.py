@@ -1,7 +1,10 @@
+import os
 import numpy as np
 import streamlit as st
-from PIL import Image
 from streamlit_drawable_canvas import st_canvas
+import streamlit_analytics2
+from PIL import Image
+
 import data_prep as data
 
 import ao_core as ao
@@ -15,8 +18,21 @@ def streamlit_setup():
 
 
 def setup_agent():
-    agent = ao.Agent(arch)
+    agent = ao.Agent(arch, notes="Default Agent", save_meta=False)
     return agent
+
+
+def initialize_session_state():
+    if "interrupt" not in st.session_state:
+        st.session_state.interrupt = False
+
+
+def reset_interrupt():
+    st.session_state.interrupt = False
+
+
+def set_interrupt():
+    st.session_state.interrupt = True
 
 
 def run_agent(user_STEPS, INPUT, LABEL=[]):
@@ -49,6 +65,9 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
 
 
 def run_trials(is_training, num_trials, user_STEPS):
+
+    initialize_session_state()
+
     trialset = data.MN_TRAIN if is_training else data.MN_TEST
     trialset_z = data.MN_TRAIN_Z if is_training else data.MN_TEST_Z
 
@@ -78,7 +97,23 @@ def run_trials(is_training, num_trials, user_STEPS):
         print("Training complete; neurons updated.")
         return
 
+    st.session_state.num_trials_actual = 0
+
+    progress_bar = st.progress(float(0))
     for t in np.arange(num_trials):
+        nt = t/num_trials
+        progress_bar.progress( nt, text="Testing in Progress")
+
+        @st.dialog("Process Interrupted")
+        def interrupt_modal_dialog():
+            st.warning(
+                "Function interrupted! Click the *Re-Enable Processing* button in the sidebar to train/test again."
+            )
+
+        if st.session_state.interrupt:
+            interrupt_modal_dialog()
+            break
+
         INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
         LABEL = selected_z[t]
         if is_training:
@@ -92,11 +127,14 @@ def run_trials(is_training, num_trials, user_STEPS):
             print("Tested on " + str(t))
             print("TOTAL CORRECT-----------------" + str(correct_responses))
 
-    trial_result = (correct_responses / num_trials) * 100
-    st.session_state.correct_responses = correct_responses
-    st.session_state.trial_result = trial_result
-    print("Correct on {x}%".format(x=trial_result))
-    return correct_responses
+        st.session_state.num_trials_actual += 1
+
+        trial_result = (correct_responses / st.session_state.num_trials_actual) * 100
+        st.session_state.correct_responses = correct_responses
+        st.session_state.trial_result = trial_result
+        print("Correct on {x}%".format(x=trial_result))
+        # return correct_responses
+    progress_bar.empty()
 
 
 def run_canvas():
@@ -133,48 +171,158 @@ def arr_to_img(img_array, enlarge_factor=15):
 
     return img
 
-
+streamlit_analytics2.start_tracking()
 # Basic streamlit setup
 st.set_page_config(
-    page_title="AO Labs Demo App",
-    page_icon="https://i.imgur.com/j3jalQE.png",
+    page_title="MNIST Demo by AO Labs",
+    page_icon="misc/ao_favicon.png",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        "Get Help": "mailto:ali@aolabs.ai",
-        "Report a bug": "mailto:ali@aolabs.ai",
-        "About": "This is a demo of our AI features. Check out www.aolabs.ai and www.docs.aolabs.ai for more. Thank you!",
+        "Get Help": "https://discord.gg/Zg9bHPYss5",
+        "Report a bug": "mailto:eng@aolabs.ai",
+        "About": "AO Labs builds next-gen AI models that learn after training; learn more at docs.aolabs.ai/docs/mnist-benchmark",
     },
 )
 
 streamlit_setup()
 
-st.title("Understanding WNNs through MNIST")
-st.write("### *a benchmark & demo by [aolabs.ai](https://www.aolabs.ai/)*")
+st.title("Understanding *Weightless* NNs via MNIST")
+st.write("### *a demo by [aolabs.ai](https://www.aolabs.ai/)*")
 
-train_max = 20000
+train_max = 60000
 test_max = 10000
+
+############################################################################
+with st.sidebar:
+    st.write("## Current Active Agent:")
+    st.write(st.session_state.agent.notes)
+
+    start_button = st.button(
+        "Re-Enable Training & Testing",
+        on_click=reset_interrupt,
+        help="If you stopped a process\n click to re-enable Testing/Training agents.",
+    )
+    stop_button = st.button(
+        "Stop Testing",
+        on_click=set_interrupt,
+        help="Click to stop a current Test if it is taking too long.",
+    )
+
+    st.write("---")
+    st.write("## Load Agent:")
+
+    def load_pickle_files(directory):
+        pickle_files = [
+            f[:-10] for f in os.listdir(directory) if f.endswith(".ao.pickle")
+        ]  # [:-10] is to remove the "ao.pickle" file extension
+        return pickle_files
+
+    # directory_option = st.radio(
+    #     "Choose directory to retrieve Agents:",
+    #     ("App working directory", "Custom directory"),
+    #     label_visibility="collapsed"
+    # )
+    # if directory_option == "App working directory":
+    directory = os.path.dirname(os.path.abspath(__file__))
+    # else:
+    #     directory = st.text_input("Enter a custom directory path:")
+
+    if directory:
+        pickle_files = load_pickle_files(directory)
+
+        if pickle_files:
+            selected_file = st.selectbox(
+                "Choose from saved Agents:", options=pickle_files
+            )
+
+            if st.button(f"Load {selected_file}"):
+                file_path = os.path.join(directory, selected_file)
+                st.session_state.agent = ao.Agent.unpickle(
+                    file=file_path, custom_name=selected_file
+                )
+                st.session_state.agent._update_neuron_data()
+                st.write("Agent loaded")
+        else:
+            st.warning("No Agents saved yet-- be the first!")
+
+    st.write("---")
+    st.write("## Save Agent:")
+
+    agent_name = st.text_input(
+        "## *Optional* Rename active Agent:", value=st.session_state.agent.notes
+    )
+    st.session_state.agent.notes = agent_name
+
+    @st.dialog("Save successful!")
+    def save_modal_dialog():
+        st.write("Agent saved to your local disk (in the same directory as this app).")
+
+    agent_name = agent_name.split("\\")[-1].split(".")[0]
+    if st.button("Save " + agent_name):
+        st.session_state.agent.pickle(agent_name)
+        save_modal_dialog()
+
+    st.write("---")
+    st.write("## Download/Upload Agents:")
+
+    @st.dialog("Upload successful!")
+    def upload_modal_dialog():
+        st.write(
+            "Agent uploaded and ready as *Newly Uploaded Agent*, which you can rename during saving."
+        )
+
+    uploaded_file = st.file_uploader(
+        "Upload .ao.pickle files here", label_visibility="collapsed"
+    )
+    if uploaded_file is not None:
+        if st.button("Confirm Agent Upload"):
+            st.session_state.agent = ao.Agent.unpickle(
+                uploaded_file, custom_name="Newly Uploaded Agent", upload=True
+            )
+            st.session_state.agent._update_neuron_data()
+            upload_modal_dialog()
+
+    @st.dialog("Download ready")
+    def download_modal_dialog(agent_pickle):
+        st.write(
+            "The Agent's .ao.pickle file will be saved to your default Downloads folder."
+        )
+
+        # Create a download button
+        st.download_button(
+            label="Download Agent: " + st.session_state.agent.notes,
+            data=agent_pickle,
+            file_name=st.session_state.agent.notes,
+            mime="application/octet-stream",
+        )
+
+    if st.button("Prepare Active Agent for Download"):
+        agent_pickle = st.session_state.agent.pickle(download=True)
+        download_modal_dialog(agent_pickle)
+############################################################################
 
 agent_col, state_col = st.columns(2)
 
 with agent_col:
-    with st.expander("#### Batch Training", expanded=True):
+    with st.expander("#### Batch Training & Testing", expanded=True):
+        st.write("---")
         st.write("##### Training")
-
-        st.write(
-            "The agent can be trained on MNIST or standard fonts. When training on standard fonts, it trains on all of the digits from that font."
-        )
         training_set_options = list(data.FONTS.keys())
         training_set_options.insert(0, "MNIST")
         st.session_state.training_sets = st.multiselect(
-            "Select Training Sets:", options=training_set_options, default=("MNIST")
+            "Select training datasets:",
+            options=training_set_options,
+            default=("MNIST"),
+            help="When training on standard fonts (eg. Times New Roman, Arial, etc.), it trains on all of the digits of that font.",
         )
 
         train_count = st.number_input(
-            "Select number of randomly selected MNIST training samples",
+            "Set the number of MNIST training pairs:",
             0,
             train_max,
             value=0,
+            help="Randomly selected from MNIST's 60k training set.",
         )
         st.button(
             "Train Agent",
@@ -182,39 +330,45 @@ with agent_col:
             args=(True, train_count, 1),
             disabled=len(st.session_state.training_sets) == 0,
         )
-
+        st.write("---")
         st.write("##### Testing")
-        st.write(
-            "The agent can take multiple steps for each inference/prediction. Each step will result in an update of the agent's internal state. Modifying the steps per inference does not apply to training, at least not in this webapp."
-        )
         t_count, t_steps = st.columns(2)
         with t_count:
             test_count = st.number_input(
-                "select number of randomly selected tests", 1, test_max, value=1
+                "Number of test images",
+                1,
+                test_max,
+                value=1,
+                help="Randomly selected from MNIST's 10k test set.",
             )
         with t_steps:
             user_STEPS = st.number_input(
-                "How many steps per inference:", 1, 30, value=1
+                "Number of steps per test image:",
+                1,
+                20,
+                value=10,
+                help="10 is a good default; this level of agent usually converges on a stable pattern after ~7 steps (if you've trained it enough).",
             )
         st.button(
             "Test Agent", on_click=run_trials, args=(False, test_count, user_STEPS)
         )
 
-        st.markdown("""---""")
+        st.write("---")
 
         # display trial result
         if "trial_result" in st.session_state:
             st.write("##### Test Results")
             st.write(
                 "The agent predicted {correct} out of {total} images correctly, an accuracy of:".format(
-                    correct=st.session_state.correct_responses, total=test_count
+                    correct=st.session_state.correct_responses,
+                    total=st.session_state.num_trials_actual,
                 )
             )
             st.write("# {result}%".format(result=st.session_state.trial_result))
 
     with st.expander("#### Continuous Learning", expanded=True):
         st.write(
-            "You can also test your agent's inferences or train it on custom inputs made on the canvas below"
+            "You can also train or test your agent on custom inputs made using the canvas below-- try drawing a digit."
         )
 
         t_canvas, t_label = st.columns(2)
@@ -258,11 +412,16 @@ with agent_col:
             st.write("# {x}".format(x=st.session_state.canvas_int))
 
 with state_col:
-    st.write("#### Agent State History")
+    st.write("#### Agent Visual Inspector - view the agent's state history")
     instruction_md = """
-    Since our agents apply a form of reinforcement learning, they maintain an internal state that changes from step to step. \n
-    The internal state of the agent is displayed below. Each state that the agent has held is accessible through the <number input> field, with greater numbers representing more recent states. \n
-    The input and output layers can be seen as direct parallels to traditonal inputs and outputs, the internal layer is where WNNs differ from what you're used to seeing. \n 
+    Weightless neural network agents function as *neural state machines*, so during Testing, an agent is shown an image from MNIST and its inner and output states will change in response, allowing you to 'see' what the agent is thinking (unlike deep learning which remains a blackbox); the final output state is translated into an integer label to determine the accuracy of the agent's inference. \n
+    You can view all that information by cycle through the states below. \n
+    * ***Input*** is the 28x28 B&W pixel input to the agent from MNIST or your canvas (MNIST is grayscale but for this demo we're downsampling to B&W). \n
+    * ***Inner State*** is visual representation of 28x28 binary neurons that make up the agent's inner or hidden layer (the same shape as the input, to aid with visual inspection.) \n
+    * ***Output State*** is a visual representation of 4 binary neurons (also displayed as a list) that make up the agent's output layer (the states of the binary neurons are translated to an integer label, 0-9). \n
+    \n
+    Starting from state 1, you'll first cycle through the training data you fed the agent-- you'll notice there's noise interspersed between the training states; this is because we're not tasking the agent with learning a sequence between the MNIST data, so we introduce randomness in between. \n
+    When you cycle through to the testing states, you'll see a fixed input with an evolving inner and output states. Often they'll converge on a pattern which correlates with the label of the input image. \n
     """
     with st.expander("About"):
         st.markdown(instruction_md)
@@ -277,7 +436,9 @@ with state_col:
         min_value,
         st.session_state.agent.state,
         value=st.session_state.agent.state - 1,
-        help="most recent state is currently: {}".format(st.session_state.agent.state),
+        help="The agent has history up until state: {}".format(
+            st.session_state.agent.state
+        ),
     )
 
     I_col, Q_col, Z_col = st.columns(3)
@@ -312,3 +473,14 @@ with state_col:
         st.write("  " + str(z_arr))
         st.write("Result as an integer label: " + str(z_int))
 
+st.write("---")
+footer_md = """
+    [View & fork the code behind this application here.](https://github.com/aolabsai/MNIST_streamlit) \n
+    To learn more about Weightless Neural Networks and the new generation of AI we're developing at AO Labs, [visit our docs.aolabs.ai.](https://docs.aolabs.ai/docs/mnist-benchmark)\n
+    \n
+    We eagerly welcome contributors and hackers at all levels! [Say hi on our discord.](https://discord.gg/Zg9bHPYss5)
+    """
+st.markdown(footer_md)
+st.image("misc/aolabs-logo-horizontal-full-color-white-text.png", width=300)
+
+streamlit_analytics2.stop_tracking()
