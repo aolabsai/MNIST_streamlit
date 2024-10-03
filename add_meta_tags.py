@@ -2,8 +2,10 @@ import os
 import shutil
 from bs4 import BeautifulSoup
 
+# add metadata when building the docker image
+
 # Streamlit package directory
-streamlit_path = "usr/local/lib/python3.12/site-packages/Streamlit/static/index.html"
+streamlit_path = "/usr/local/lib/python3.12/site-packages/streamlit/static/index.html"
 
 # Backup original index.html
 shutil.copy2(streamlit_path, streamlit_path + ".bak")
@@ -36,7 +38,7 @@ meta_tags = [
         "property": "og:description",
         "content": "An alternative to deep learning that can be continuously (re)trained, a solution to AI hallucination (more at aolabs.ai/demos).",
     },
-    {"property": "og:image", "content": "meta_image_mnist.png"},
+    {"property": "og:image", "content": "/app/misc/meta_image_mnist.png"},
     # Twitter
     {"property": "twitter:card", "content": "summary_large_image"},
     {"property": "twitter:url", "content": "https://metatags.io/"},
@@ -48,7 +50,7 @@ meta_tags = [
         "property": "twitter:description",
         "content": "An alternative to deep learning that can be continuously (re)trained, a solution to AI hallucination (more at aolabs.ai/demos).",
     },
-    {"property": "twitter:image", "content": "meta_image_mnist.png"},
+    {"property": "twitter:image", "content": "/app/misc/meta_image_mnist.png"},
 ]
 
 # add meta tags to head

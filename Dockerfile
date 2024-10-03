@@ -22,7 +22,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install git and other necessary packages
 RUN apt-get update && \
-    apt-get install -y git python3-bs4 && \
+    apt-get install -y git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

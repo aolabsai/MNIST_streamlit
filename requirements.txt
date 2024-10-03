@@ -11,3 +11,5 @@ streamlit-drawable-canvas
 streamlit_analytics2
 Pillow
 openpyxl
+#For adding metadata to index.html when deploying with docker
+beautifulsoup4
