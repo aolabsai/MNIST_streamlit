@@ -21,36 +21,36 @@ meta_tags = [
     # title and description
     {
         "name": "title",
-        "content": "AO Labs: next-gen AI that learns after training - MNIST Demo",
+        "content": "AO Labs: we are building AI that can learn after training - MNIST on WNNs",
     },
     {
         "name": "description",
-        "content": "An alternative to deep learning that can be continuously (re)trained, a solution to AI hallucination (more at aolabs.ai/demos).",
+        "content": "AO Labs is building a more reliable alternative to deep learning and LLMs using continuously trainable, compute-efficient weightless neural networks.",
     },
     # Open Graph / Facebook
     {"property": "og:type", "content": "website"},
     {"property": "og:url", "content": "https://metatags.io/"},
     {
         "property": "og:title",
-        "content": "AO Labs: next-gen AI that learns after training - MNIST Demo",
+        "content": "AO Labs: we are building AI that can learn after training - MNIST on WNNs",
     },
     {
         "property": "og:description",
-        "content": "An alternative to deep learning that can be continuously (re)trained, a solution to AI hallucination (more at aolabs.ai/demos).",
+        "content": "AO Labs is building a more reliable alternative to deep learning and LLMs using continuously trainable, compute-efficient weightless neural networks.",
     },
-    {"property": "og:image", "content": "/app/misc/meta_image_mnist.png"},
+    {"property": "og:image", "content": "https://raw.githubusercontent.com/aolabsai/MNIST_streamlit/refs/heads/main/misc/meta_image_mnist.png"},
     # Twitter
     {"property": "twitter:card", "content": "summary_large_image"},
     {"property": "twitter:url", "content": "https://metatags.io/"},
     {
         "property": "twitter:title",
-        "content": "AO Labs: next-gen AI that learns after training - MNIST Demo",
+        "content": "AO Labs: we are building AI that can learn after training - MNIST on WNNs",
     },
     {
         "property": "twitter:description",
-        "content": "An alternative to deep learning that can be continuously (re)trained, a solution to AI hallucination (more at aolabs.ai/demos).",
+        "content": "AO Labs is building a more reliable alternative to deep learning and LLMs using continuously trainable, compute-efficient weightless neural networks.",
     },
-    {"property": "twitter:image", "content": "/app/misc/meta_image_mnist.png"},
+    {"property": "twitter:image", "content": "https://raw.githubusercontent.com/aolabsai/MNIST_streamlit/refs/heads/main/misc/meta_image_mnist.png"},
 ]
 
 # add meta tags to head
