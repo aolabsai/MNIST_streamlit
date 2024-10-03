@@ -321,7 +321,7 @@ with agent_col:
             "Set the number of MNIST training pairs:",
             1,
             train_max,
-            value=0,
+            value=2,
             help="Randomly selected from MNIST's 60k training set.",
         )
         st.button(
