@@ -319,7 +319,7 @@ with agent_col:
 
         train_count = st.number_input(
             "Set the number of MNIST training pairs:",
-            0,
+            1,
             train_max,
             value=0,
             help="Randomly selected from MNIST's 60k training set.",
