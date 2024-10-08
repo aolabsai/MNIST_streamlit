@@ -74,4 +74,4 @@ Each of these layers are viewable on the right side of the streamlit app. Betwee
 - There are a couple cells in the Font training sets that seem to be causing errors without breaking anything, identifying and fixing those cells would be good
 
 ## Contributing
-Fork the repo, make your changes and submit a pull request. Join our [discord](https://discord.com/invite/nHuJc4Y4n7) and say hi!
+Fork the repo, make your changes and submit a pull request. Join our [discord](https://discord.com/invite/nHuJc4Y4n7) and say hi!!
