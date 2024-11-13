@@ -35,7 +35,7 @@ export DOCKER_BUILDKIT=1
 
 docker build --secret id=env,src=.env -t "ao_app" .
 
-docker run -p 8501:8501 streamlit
+docker run -p 8501:8501 ao_app 
 ```
 You're done! Access the app at `localhost:8501` in your browser.
 
