@@ -8,7 +8,7 @@ from PIL import Image
 import data_prep as data
 
 import ao_core as ao
-from arch__MNIST import arch
+from arch__MNIST import arch_bw, arch_gr, arch
 
 
 def streamlit_setup():
@@ -16,9 +16,18 @@ def streamlit_setup():
         st.session_state.agent = setup_agent()
     return
 
+# Throwing a memory problem when consistently switch between app type. Need a better approach to clean up the streamlit session when changing the app type. 
+def update_agent():
+    del st.session_state.agent
+    st.session_state.agent = setup_agent()
 
 def setup_agent():
-    agent = ao.Agent(arch, notes="Default Agent", save_meta=False)
+    if "app_type" not in st.session_state:
+        st.session_state.app_type = "Grey scale MNIST"
+    if st.session_state.app_type == "Black & White MNIST":
+        agent = ao.Agent(arch_bw, notes="B&W MNIST Agent", save_meta=False)
+    else:   
+        agent = ao.Agent(arch_gr, notes="Default agent", save_meta=False)  # Default for grey scale MNIST
     return agent
 
 
@@ -54,9 +63,14 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     q_index = st.session_state.agent.arch.Q__flat
     # z = st.session_state.agent.arch.Z__flat
     z_index = st.session_state.agent.arch.Z__flat
-    st.session_state.agent_qresponse = np.reshape(
+    if st.session_state.app_type == "Black & White MNIST":
+        st.session_state.agent_qresponse = np.reshape(
         st.session_state.agent.story[s - 1, q_index], [28, 28]
-    )
+        )
+    else:
+         st.session_state.agent_qresponse = np.reshape(
+        st.session_state.agent.story[s - 1, q_index], [28, 28,8]
+        )   
     # st.session_state.agent_zresponse = st.session_state.agent.story[s, z]
     z = st.session_state.agent.story[s - 1, z_index]
 
@@ -92,7 +106,10 @@ def run_trials(is_training, num_trials, user_STEPS):
     num_trials = len(selected_in)
 
     if is_training:
-        INPUT = data.down_sample(selected_in).reshape(num_trials, 784)
+        if st.session_state.app_type == "Black & White MNIST":
+            INPUT = data.down_sample(selected_in).reshape(num_trials, 784)
+        else:
+            INPUT = data.bitmap_to_binary(selected_in).reshape(num_trials, 784*8)    
         st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
         print("Training complete; neurons updated.")
         return
@@ -114,7 +131,10 @@ def run_trials(is_training, num_trials, user_STEPS):
             interrupt_modal_dialog()
             break
 
-        INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
+        if st.session_state.app_type == "Black & White MNIST":
+            INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
+        else:
+            INPUT = data.bitmap_to_binary(selected_in[t, :, :]).reshape(784*8)    
         LABEL = selected_z[t]
         if is_training:
             user_STEPS = 1
@@ -138,7 +158,11 @@ def run_trials(is_training, num_trials, user_STEPS):
 
 
 def run_canvas():
-    input = data.down_sample(st.session_state.canvas_image).reshape(784)
+    if st.session_state.app_type == "Black & White MNIST":
+        input = data.down_sample(st.session_state.canvas_image).reshape(784)
+    else:
+        input = data.bitmap_to_binary(st.session_state.canvas_image).reshape(784*8)
+
     label = []
     user_steps = 10
     if st.session_state.train_canvas:
@@ -152,12 +176,32 @@ def run_canvas():
 
 
 # Used to construct images of agent state
+def bin_to_pix(img):
+    if img.ndim == 1:
+        return np.array(int(''.join(map(str, img)), 2),dtype=np.uint8)
+    # elif img.ndim == 2:
+    #     return np.array([int(''.join(map(str, pixel)), 2) for pixel in img], dtype=np.uint8)
+    else:
+        return np.array([bin_to_pix(sub_array) for sub_array in img],dtype=np.uint8)
+    
 def arr_to_img(img_array, enlarge_factor=15):
+    # if else statement below is hard coded and need to be restructured. 
     # Convert the binary array to a numpy array
-    img_array = np.array(img_array, dtype=np.uint8)
+    if st.session_state.app_type == "Black & White MNIST":
+        img_array = np.array(img_array, dtype=np.uint8)
 
-    # Scale the values to 0 or 255 (black or white)
-    img_array = img_array * 255
+        # Scale the values to 0 or 255 (black or white)
+        img_array = img_array * 255
+
+    else:
+        if img_array.ndim == 1:
+            img_array = np.array(img_array, dtype=np.uint8)
+            img_array = img_array * 255
+
+        else:
+            # Convert the binary array to a numpy array
+            img_array = bin_to_pix(img_array)
+            #img_array = img_array.astype(np.uint8)    
 
     enlarged_array = np.repeat(img_array, enlarge_factor, axis=0)
     try:
@@ -186,6 +230,7 @@ st.set_page_config(
 )
 
 streamlit_setup()
+# apptype_setup()
 
 st.title("Understanding *Weightless* NNs via MNIST")
 st.write("### *a demo by [aolabs.ai](https://www.aolabs.ai/)*")
@@ -307,6 +352,18 @@ agent_col, state_col = st.columns(2)
 with agent_col:
     with st.expander("#### Batch Training & Testing", expanded=True):
         st.write("---")
+        
+        st.selectbox(
+                    "Select the application",
+                    options=["Grey scale MNIST", "Black & White MNIST"],
+                    index=0 if st.session_state.app_type == "Grey scale MNIST" else 1,
+                    help="Select among grey scale and b&w MNIST",
+                    key="app_type", 
+                    on_change=update_agent  # cal back function 
+                    )
+        print(st.session_state.app_type)
+        
+
         st.write("##### Training")
         training_set_options = list(data.FONTS.keys())
         training_set_options.insert(0, "MNIST")
@@ -448,7 +505,10 @@ with state_col:
         i_arr = st.session_state.agent.story[
             sel_state, st.session_state.agent.arch.I__flat
         ]
-        i_arr = np.reshape(i_arr, [28, 28])
+        if st.session_state.app_type == "Black & White MNIST":
+            i_arr = np.reshape(i_arr, [28, 28])
+        else:
+            i_arr = np.reshape(i_arr, [28, 28,8])    
         i_img = arr_to_img(i_arr)
         st.image(i_img)
 
@@ -457,7 +517,10 @@ with state_col:
         q_arr = st.session_state.agent.story[
             sel_state, st.session_state.agent.arch.Q__flat
         ]
-        q_arr = np.reshape(q_arr, [28, 28])
+        if st.session_state.app_type == "Black & White MNIST":
+            q_arr = np.reshape(q_arr, [28, 28])
+        else:   
+            q_arr = np.reshape(q_arr, [28, 28,8]) 
         q_img = arr_to_img(q_arr)
         st.image(q_img)
 
