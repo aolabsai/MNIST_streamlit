@@ -8,7 +8,7 @@ from PIL import Image
 import data_prep as data
 
 import ao_core as ao
-from arch__MNIST import arch_bw, arch_gr, arch
+from arch__MNIST import arch_bw, arch_gr
 
 
 def streamlit_setup():
@@ -356,7 +356,7 @@ with agent_col:
         st.selectbox(
                     "Select the application",
                     options=["Grey scale MNIST", "Black & White MNIST"],
-                    index=0 if st.session_state.app_type == "Grey scale MNIST" else 1,
+                    index=0,
                     help="Select among grey scale and b&w MNIST",
                     key="app_type", 
                     on_change=update_agent  # cal back function 

@@ -21,6 +21,3 @@ arch_bw = ar.Arch(
 arch_gr = ar.Arch(
     arch_i_gr, arch_z, arch_c, connector_function, connector_parameters, description
 )
-arch = ar.Arch(
-    arch_i_bw, arch_z, arch_c, connector_function, connector_parameters, description
-)
