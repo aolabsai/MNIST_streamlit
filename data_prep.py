@@ -23,12 +23,14 @@ def unpickle():
 
 
 def process_labels(labels):
-    label_to_binary = np.zeros([10, 4], dtype="int8")
+    label_to_binary = np.zeros([10, 10], dtype="int8")
     for i in np.arange(10):
-        label_to_binary[i] = np.array(list(np.binary_repr(i, 4)), dtype=int)
+        arr = np.zeros(10)
+        arr[i] = 1
+        label_to_binary[i] = arr
 
     # Changing the labels from 0-9 int to binary for our weightless neural state machine
-    labels_z = np.zeros([labels.size, 4])
+    labels_z = np.zeros([labels.size, 10])
     for i in np.arange(labels.size):
         labels_z[i] = label_to_binary[labels[i]]
     return labels_z
@@ -88,9 +90,12 @@ def get_font_data(filename):
                 # print("file: {}, digit: {}, r:, {}, c: {}".format(filename, i, r, c))
                 ret_arr[i][r][c] = 255 * arr[r][c + 28 * i]
     # Convert labels
-    label_to_binary = np.zeros([10, 4], dtype="int8")
+    label_to_binary = np.zeros([10, 10], dtype="int8")
     for i in np.arange(10):
-        label_to_binary[i] = np.array(list(np.binary_repr(i, 4)), dtype=int)
+        # label_to_binary[i] = np.array(list(np.binary_repr(i, 4)), dtype=int)
+        arr = np.zeros(10)
+        arr[i] = 1
+        label_to_binary[i] = arr
 
     return (ret_arr, np.array([label_to_binary[i] for i in range(10)]))
 

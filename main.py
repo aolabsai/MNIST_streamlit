@@ -166,7 +166,7 @@ def run_canvas():
     label = []
     user_steps = 10
     if st.session_state.train_canvas:
-        label = list(np.binary_repr(int(canvas_label), 4))
+        label = list(canvas_label)
         user_steps = 1
     response = run_agent(user_steps, input, LABEL=label)
     print(response)
@@ -529,12 +529,13 @@ with state_col:
         z_arr = st.session_state.agent.story[
             sel_state, st.session_state.agent.arch.Z__flat
         ]
-        z_int = z_arr.dot(2 ** np.arange(z_arr.size)[::-1])
+        z_int = np.where(z_arr==1)
+        # z_int = z_arr.dot(2 ** np.arange(z_arr.size)[::-1])
         z_img = arr_to_img(z_arr)
         st.write("Result in binary:")
         st.image(z_img)
         st.write("  " + str(z_arr))
-        st.write("Result as an integer label: " + str(z_int))
+        st.write("Result as an integer label: " + str(z_int))    ## this print statement is ugly, see how it renders: https://i.imgur.com/bBtHj18.png please fix!
 
 st.write("---")
 footer_md = """
