@@ -78,14 +78,39 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     return z
 
 
-def run_trials(is_training, num_trials, user_STEPS):
+def filter_trials(trialset, trialset_z, selected_labels):
+    # Step 1: Convert each row of trialset_z from binary to decimal
+    decimal_values = []
+    for row in trialset_z:
+        decimal_value = 0
+        for i, bit in enumerate(reversed(row)):  # Reverse row to match binary place values
+            decimal_value += int(bit) * (2 ** i)  # Calculate decimal value for the row
+        decimal_values.append(decimal_value)
+    
+    # Step 2: Identify rows that match the selected labels
+    valid_indices = []  # List to store valid indices
+    for i, value in enumerate(decimal_values):
+        if value in selected_labels:
+            valid_indices.append(i)  
+    
+    # Step 3: Filtering
+    new_trialset = trialset[valid_indices]
+    new_trialset_z = trialset_z[valid_indices]           
+
+    return new_trialset, new_trialset_z
+
+
+def run_trials(is_training, num_trials, user_STEPS, selected_labels):
 
     initialize_session_state()
 
     trialset = data.MN_TRAIN if is_training else data.MN_TEST
     trialset_z = data.MN_TRAIN_Z if is_training else data.MN_TEST_Z
+    
+    trialset, trialset_z = filter_trials(trialset, trialset_z, selected_labels)
 
-    selected_in, selected_z = data.random_sample(num_trials, trialset, trialset_z)
+    # selected_in, selected_z = data.random_sample(num_trials, trialset, trialset_z)
+    selected_in, selected_z = data.random_sample_same(num_trials, trialset, trialset_z, seed=42)
 
     # Just training on fonts
     if is_training and (
@@ -381,14 +406,30 @@ with agent_col:
             value=2,
             help="Randomly selected from MNIST's 60k training set.",
         )
+
+        selected_labels_train = st.multiselect(
+                        "Select labels for training:",
+                        options=list(range(10)),  # Options from 0 to 9
+                        default=[0],  # Default selection
+                        help="Choose one or more labels for training."
+                        )
+        print(selected_labels_train)
+        
         st.button(
             "Train Agent",
             on_click=run_trials,
-            args=(True, train_count, 1),
+            args=(True, train_count, 1, selected_labels_train),
             disabled=len(st.session_state.training_sets) == 0,
         )
         st.write("---")
         st.write("##### Testing")
+        selected_labels_test = st.multiselect(
+                        "Select labels for testing:",
+                        options=list(range(10)),  # Options from 0 to 9
+                        default=[0],  # Default
+                        help="Choose one or more labels for testing."
+                        )
+        print(selected_labels_test)
         t_count, t_steps = st.columns(2)
         with t_count:
             test_count = st.number_input(
@@ -407,7 +448,7 @@ with agent_col:
                 help="10 is a good default; this level of agent usually converges on a stable pattern after ~7 steps (if you've trained it enough).",
             )
         st.button(
-            "Test Agent", on_click=run_trials, args=(False, test_count, user_STEPS)
+            "Test Agent", on_click=run_trials, args=(False, test_count, user_STEPS, selected_labels_test)
         )
 
         st.write("---")
