@@ -166,7 +166,8 @@ def run_canvas():
     label = []
     user_steps = 10
     if st.session_state.train_canvas:
-        label = list(np.binary_repr(int(canvas_label), 4))
+        # label = list(np.binary_repr(int(canvas_label), 4))
+        label = data.process_labels_digital(np.array(int(canvas_label))) 
         user_steps = 1
     response = run_agent(user_steps, input, LABEL=label)
     print(response)

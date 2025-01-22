@@ -33,12 +33,23 @@ def process_labels(labels):
         labels_z[i] = label_to_binary[labels[i]]
     return labels_z
 
+def process_labels_digital(labels):
+    # Create a zero array of shape (number of labels, 10)
+    digi_labels = np.zeros((labels.size, 10), dtype="int8")
+    
+    for i in range(labels.size):
+        # Setting the index corresponding to the label to 1
+        digi_labels[i, labels[i]] = 1
+        
+    return digi_labels
 
 def process_data():
     data = unpickle()
     (MN_TRAIN, MN_TRAIN_labels), (MN_TEST, MN_TEST_labels) = data
-    MN_TRAIN_Z = process_labels(MN_TRAIN_labels)
-    MN_TEST_Z = process_labels(MN_TEST_labels)
+    MN_TRAIN_Z = process_labels_digital(MN_TRAIN_labels)
+    MN_TEST_Z = process_labels_digital(MN_TEST_labels)
+    # MN_TRAIN_Z = MN_TRAIN_labels
+    # MN_TEST_Z = MN_TEST_labels
     return (MN_TRAIN, MN_TRAIN_Z), (MN_TEST, MN_TEST_Z)
 
 
