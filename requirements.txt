@@ -1,15 +1,13 @@
-# AO modules
-#   to run this streamlit app locally without/outside of the docker container,
-#   uncomment the two "git+" lines below to pip install these modules from their repos (you'll be prompted to authenticate via GitHub)
-# git+https://github.com/aolabsai/ao_core
-# git+https://github.com/aolabsai/ao_arch
-#   otherwise if using the container, AO modules are installed instead through the dockerfile
-#
 numpy
 streamlit
 streamlit-drawable-canvas
 streamlit_analytics2
 Pillow
 openpyxl
-#For adding metadata to index.html when deploying with docker
-beautifulsoup4
+beautifulsoup4 # For adding metadata to index.html when deploying with docker
+
+# AO modules
+#   to run this streamlit app in the docker container,
+#   uncomment the two "git+" lines below (the dockerfile will install them)
+git+https://github.com/aolabsai/ao_core # private repo-- you'll need access via github (contact us: https://discord.gg/nHuJc4Y4n7) 
+git+https://github.com/aolabsai/ao_arch
