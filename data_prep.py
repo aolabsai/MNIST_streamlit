@@ -5,6 +5,7 @@ import pickle
 
 from os import listdir
 from os.path import isfile, join
+from scipy.signal import convolve2d
 
 
 # import from MNIST dataset on AWS using the instructions here: https://stackoverflow.com/a/40693405/4147579
@@ -20,6 +21,46 @@ def unpickle():
         data = pickle.load(f, encoding="bytes")
     f.close()
     return data
+
+
+def convolve(image, kernel):
+    if image.ndim == 2:  # Single image
+        return convolve2d(image, kernel, mode='same', boundary='fill', fillvalue=0)
+    
+    elif image.ndim == 3:  # many images at once
+        return np.array([convolve2d(img, kernel, mode='same', boundary='fill', fillvalue=0) for img in image])
+    
+    else:
+        raise ValueError("Invalid image shape.")
+
+gaussian_kernel = np.array([[1, 2, 1],
+                            [2, 4, 2],
+                            [1, 2, 1]]) / 16.0
+
+def max_pooling(image, pool_size=2, stride=2):
+    def pool_single_image(img):
+        h, w = img.shape
+        new_h = int(np.ceil(h / stride))  
+        new_w = int(np.ceil(w / stride))
+
+        pooled_image = np.zeros((new_h, new_w))
+
+        for i in range(new_h):
+            for j in range(new_w):
+                x_start, y_start = i * stride, j * stride
+                x_end, y_end = min(x_start + pool_size, h), min(y_start + pool_size, w)  
+                pooled_image[i, j] = np.max(img[x_start:x_end, y_start:y_end])
+
+        return pooled_image
+
+    if image.ndim == 2:  # Single image 
+        return pool_single_image(image)
+    
+    elif image.ndim == 3:  # many images at once
+        return np.array([pool_single_image(img) for img in image])
+    
+    else:
+        raise ValueError(f"Invalid image shape. ")
 
 
 def process_labels(labels):
@@ -42,7 +83,8 @@ def process_data():
     return (MN_TRAIN, MN_TRAIN_Z), (MN_TEST, MN_TEST_Z)
 
 
-def random_sample(num_samples, samples, labels):
+def random_sample(num_samples, samples, labels, seed=42):
+    np.random.seed(seed)
     index = np.random.choice(samples.shape[0], num_samples, replace=False)
     return samples[index], labels[index]
 
@@ -51,7 +93,7 @@ def down_sample_item(x, down=200):
     f = np.vectorize(lambda x, down: 1 if x >= down else 0)
     return f(x, down)
 
-def down_sample(image, down=200):
+def down_sample(image, down=150):
     down_image = np.zeros(image.shape)
     down_image[image < down] = 0
     down_image[image >= down] = 1

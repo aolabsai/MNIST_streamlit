@@ -65,7 +65,7 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     z_index = st.session_state.agent.arch.Z__flat
     if st.session_state.app_type == "Black & White MNIST":
         st.session_state.agent_qresponse = np.reshape(
-        st.session_state.agent.story[s - 1, q_index], [28, 28]
+        st.session_state.agent.story[s - 1, q_index], [14, 14]
         )
     else:
          st.session_state.agent_qresponse = np.reshape(
@@ -107,7 +107,10 @@ def run_trials(is_training, num_trials, user_STEPS):
 
     if is_training:
         if st.session_state.app_type == "Black & White MNIST":
-            INPUT = data.down_sample(selected_in).reshape(num_trials, 784)
+            INPUT = data.convolve(selected_in, data.gaussian_kernel)
+            INPUT = data.down_sample(INPUT)
+            INPUT = data.max_pooling(INPUT)
+            INPUT = INPUT.reshape(num_trials, 196)
         else:
             INPUT = data.bitmap_to_binary(selected_in).reshape(num_trials, 784*8)    
         st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
@@ -132,7 +135,11 @@ def run_trials(is_training, num_trials, user_STEPS):
             break
 
         if st.session_state.app_type == "Black & White MNIST":
-            INPUT = data.down_sample(selected_in[t, :, :]).reshape(784)
+            
+            INPUT = data.convolve(selected_in[t, :, :], data.gaussian_kernel)
+            INPUT = data.down_sample(INPUT)
+            INPUT = data.max_pooling(INPUT)
+            INPUT = INPUT.flatten()
         else:
             INPUT = data.bitmap_to_binary(selected_in[t, :, :]).reshape(784*8)    
         LABEL = selected_z[t]
@@ -159,7 +166,11 @@ def run_trials(is_training, num_trials, user_STEPS):
 
 def run_canvas():
     if st.session_state.app_type == "Black & White MNIST":
-        input = data.down_sample(st.session_state.canvas_image).reshape(784)
+
+        input = data.convolve(st.session_state.canvas_image, data.gaussian_kernel)
+        input = data.down_sample(input)
+        input = data.max_pooling(input)
+        input = input.flatten()
     else:
         input = data.bitmap_to_binary(st.session_state.canvas_image).reshape(784*8)
 
@@ -506,7 +517,7 @@ with state_col:
             sel_state, st.session_state.agent.arch.I__flat
         ]
         if st.session_state.app_type == "Black & White MNIST":
-            i_arr = np.reshape(i_arr, [28, 28])
+            i_arr = np.reshape(i_arr, [14, 14])
         else:
             i_arr = np.reshape(i_arr, [28, 28,8])    
         i_img = arr_to_img(i_arr)
@@ -518,7 +529,7 @@ with state_col:
             sel_state, st.session_state.agent.arch.Q__flat
         ]
         if st.session_state.app_type == "Black & White MNIST":
-            q_arr = np.reshape(q_arr, [28, 28])
+            q_arr = np.reshape(q_arr, [14, 14])
         else:   
             q_arr = np.reshape(q_arr, [28, 28,8]) 
         q_img = arr_to_img(q_arr)
