@@ -37,6 +37,10 @@ gaussian_kernel = np.array([[1, 2, 1],
                             [2, 4, 2],
                             [1, 2, 1]]) / 16.0
 
+laplacian_kernel = np.array([[ 0,  1,  0],
+                              [ 1, -4,  1],
+                              [ 0,  1,  0]])
+
 def max_pooling(image, pool_size=2, stride=2):
     def pool_single_image(img):
         h, w = img.shape
@@ -99,15 +103,24 @@ def down_sample(image, down=150):
     down_image[image >= down] = 1
     return down_image
 
+# def bitmap_to_binary(image):
+#     if image.ndim == 1:
+#         # Handle 1D array
+#         return np.array([np.array(list(format(int(pixel), '08b')), dtype=np.uint8) for pixel in image])
+#     # elif image.ndim == 2:
+#     #     # Handle 2D array
+#     #     return np.array([[np.array(list(format(pixel, '08b')), dtype=np.uint8) for pixel in row] for row in image])
+#     else:
+#         # Handle 3D or higher-dimensional arrays
+#         return np.array([bitmap_to_binary(sub_array) for sub_array in image])
 def bitmap_to_binary(image):
+    image = np.array(image, dtype=np.float32)
+    image = np.nan_to_num(image, nan=0.0)
+    image = np.clip(image, 0, 255)
+
     if image.ndim == 1:
-        # Handle 1D array
-        return np.array([np.array(list(format(pixel, '08b')), dtype=np.uint8) for pixel in image])
-    # elif image.ndim == 2:
-    #     # Handle 2D array
-    #     return np.array([[np.array(list(format(pixel, '08b')), dtype=np.uint8) for pixel in row] for row in image])
+        return np.array([np.array(list(format(int(pixel), '08b')), dtype=np.uint8) for pixel in image])
     else:
-        # Handle 3D or higher-dimensional arrays
         return np.array([bitmap_to_binary(sub_array) for sub_array in image])
 
 def get_font_data(filename):
