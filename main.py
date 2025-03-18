@@ -69,7 +69,7 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
         )
     else:
          st.session_state.agent_qresponse = np.reshape(
-        st.session_state.agent.story[s - 1, q_index][1568:], [28, 28,8]
+        st.session_state.agent.story[s - 1, q_index][1568:], [14, 14,8]
         )   
     # st.session_state.agent_zresponse = st.session_state.agent.story[s, z]
     z = st.session_state.agent.story[s - 1, z_index]
@@ -117,7 +117,8 @@ def run_trials(is_training, num_trials, user_STEPS):
             INPUT1 = data.bitmap_to_binary(INPUT1).reshape(num_trials, 196*8)    
 
             INPUT2 = data.convolve(selected_in, data.laplacian_kernel)
-            INPUT2 = data.bitmap_to_binary(INPUT2).reshape(num_trials, 784*8) 
+            INPUT2 = data.max_pooling(INPUT2)
+            INPUT2 = data.bitmap_to_binary(INPUT2).reshape(num_trials, 196*8) 
             INPUT = np.concatenate((INPUT1, INPUT2), axis=1)
         st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
         print("Training complete; neurons updated.")
@@ -152,7 +153,8 @@ def run_trials(is_training, num_trials, user_STEPS):
             INPUT1 = data.bitmap_to_binary(INPUT1).reshape(196*8)    
 
             INPUT2 = data.convolve(selected_in[t, :, :], data.laplacian_kernel)
-            INPUT2 = data.bitmap_to_binary(INPUT2).reshape(784*8) 
+            INPUT2 = data.max_pooling(INPUT2)
+            INPUT2 = data.bitmap_to_binary(INPUT2).reshape(196*8) 
             INPUT = np.concatenate((INPUT1, INPUT2), axis=0)
             # INPUT = data.bitmap_to_binary(selected_in[t, :, :]).reshape(784*8)    
         LABEL = selected_z[t]
@@ -189,9 +191,10 @@ def run_canvas():
         input1 = data.max_pooling(input1)
         input1 = data.bitmap_to_binary(input1).reshape(196*8)    
         input2 = data.convolve(st.session_state.canvas_image, data.laplacian_kernel)
-        input2 = data.bitmap_to_binary(input2).reshape(784*8) 
+        input2 = data.max_pooling(input2)
+        input2 = data.bitmap_to_binary(input2).reshape(196*8) 
         input = np.concatenate((input1, input2), axis=0)
-        input = data.bitmap_to_binary(st.session_state.canvas_image).reshape(784*8)
+        # input = data.bitmap_to_binary(st.session_state.canvas_image).reshape(392*8)
 
     label = []
     user_steps = 10
@@ -538,7 +541,7 @@ with state_col:
         if st.session_state.app_type == "Black & White MNIST":
             i_arr = np.reshape(i_arr, [14, 14])
         else:
-            i_arr = np.reshape(i_arr[1568:], [28, 28,8])    
+            i_arr = np.reshape(i_arr[1568:], [14, 14,8])    
         i_img = arr_to_img(i_arr)
         st.image(i_img)
 
@@ -550,7 +553,7 @@ with state_col:
         if st.session_state.app_type == "Black & White MNIST":
             q_arr = np.reshape(q_arr, [14, 14])
         else:   
-            q_arr = np.reshape(q_arr[1568:], [28, 28,8]) 
+            q_arr = np.reshape(q_arr[1568:], [14, 14,8]) 
         q_img = arr_to_img(q_arr)
         st.image(q_img)
 
