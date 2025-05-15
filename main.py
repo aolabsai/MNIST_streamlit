@@ -11,6 +11,8 @@ import ao_core as ao
 from arch__MNIST import arch_bw, arch_gr
 
 import torch
+import time
+import pandas as pd
 
 def streamlit_setup():
     if "agent" not in st.session_state:
@@ -44,8 +46,9 @@ def reset_interrupt():
 def set_interrupt():
     st.session_state.interrupt = True
 
-
 def run_agent(user_STEPS, INPUT, LABEL=[]):
+    start_time = time.time()  #  start time
+
     # running the Agent
     st.session_state.agent.reset_state()
     print(LABEL)
@@ -69,13 +72,20 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
         st.session_state.agent.story[s - 1, q_index], [28, 28]
         )
     else:
-         st.session_state.agent_qresponse = np.reshape(
-        st.session_state.agent.story[s - 1, q_index], [28, 28,8]
+        st.session_state.agent_qresponse = np.reshape(
+        st.session_state.agent.story[s - 1, q_index], [28, 28, 8]
         )   
     # st.session_state.agent_zresponse = st.session_state.agent.story[s, z]
     z = st.session_state.agent.story[s - 1, z_index]
 
-    # return st.session_state.agent_zresponse
+    elapsed_time = time.time() - start_time  # end time
+    log_file = "200_train_images.csv"
+    df = pd.DataFrame({"elapsed_time_seconds": [elapsed_time]})
+    if os.path.exists(log_file):
+        df.to_csv(log_file, mode='a', header=False, index=False)
+    else:
+        df.to_csv(log_file, index=False)
+
     return z
 
 
