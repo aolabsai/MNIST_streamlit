@@ -1,4 +1,4 @@
-import ao_arch as ar
+import ao_core  as ao
 
 
 description = "Basic MNIST"
@@ -15,9 +15,9 @@ arch_c = []
 connector_function = "rand_conn"
 # used 360, 180 before to good success
 connector_parameters = [392, 261, 784, 4]
-arch_bw = ar.Arch(
+arch_bw = ao.Arch(
     arch_i_bw, arch_z, arch_c, connector_function, connector_parameters, description
 )
-arch_gr = ar.Arch(
+arch_gr = ao.Arch(
     arch_i_gr, arch_z, arch_c, connector_function, connector_parameters, description
 )

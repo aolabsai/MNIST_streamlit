@@ -10,6 +10,7 @@ import data_prep as data
 import ao_core as ao
 from arch__MNIST import arch_bw, arch_gr
 
+import torch
 
 def streamlit_setup():
     if "agent" not in st.session_state:
@@ -52,11 +53,11 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
         for x in np.arange(user_STEPS):
             print("step: " + str(x))
             # core method to run Agents
-            st.session_state.agent.next_state(INPUT, DD=False, unsequenced=True)
+            st.session_state.agent.next_state(torch.tensor(INPUT), DD=False, unsequenced=True)
     else:
         print("labelled")
         # core method to run Agents
-        st.session_state.agent.next_state(INPUT, LABEL, DD=False, unsequenced=True)
+        st.session_state.agent.next_state(torch.tensor(INPUT), torch.tensor(LABEL), DD=False, unsequenced=True)
 
     # saving results
     s = st.session_state.agent.state
@@ -110,7 +111,7 @@ def run_trials(is_training, num_trials, user_STEPS):
             INPUT = data.down_sample(selected_in).reshape(num_trials, 784)
         else:
             INPUT = data.bitmap_to_binary(selected_in).reshape(num_trials, 784*8)    
-        st.session_state.agent.next_state_batch(INPUT, selected_z, unsequenced=True)
+        st.session_state.agent.next_state_batch(torch.tensor(INPUT), torch.tensor(selected_z), unsequenced=True)
         print("Training complete; neurons updated.")
         return
 
@@ -177,16 +178,24 @@ def run_canvas():
 
 # Used to construct images of agent state
 def bin_to_pix(img):
-    if img.ndim == 1:
-        return np.array(int(''.join(map(str, img)), 2),dtype=np.uint8)
-    # elif img.ndim == 2:
-    #     return np.array([int(''.join(map(str, pixel)), 2) for pixel in img], dtype=np.uint8)
+    # Ensure img is a NumPy array
+    if isinstance(img, torch.Tensor):
+        img = img.detach().cpu().numpy()
     else:
-        return np.array([bin_to_pix(sub_array) for sub_array in img],dtype=np.uint8)
+        img = np.array(img)
+
+    if img.ndim == 1:
+        return np.array(int(''.join(map(str, img.astype(int))), 2), dtype=np.uint8)
+    else:
+        return np.array([bin_to_pix(sub_array) for sub_array in img], dtype=np.uint8)
     
 def arr_to_img(img_array, enlarge_factor=15):
-    # if else statement below is hard coded and need to be restructured. 
-    # Convert the binary array to a numpy array
+    # Convert to NumPy array if not already
+    if isinstance(img_array, torch.Tensor):
+        img_array = img_array.detach().cpu().numpy()
+    else:
+        img_array = np.array(img_array)
+
     if st.session_state.app_type == "Black & White MNIST":
         img_array = np.array(img_array, dtype=np.uint8)
 
@@ -197,22 +206,18 @@ def arr_to_img(img_array, enlarge_factor=15):
         if img_array.ndim == 1:
             img_array = np.array(img_array, dtype=np.uint8)
             img_array = img_array * 255
-
+            
         else:
-            # Convert the binary array to a numpy array
             img_array = bin_to_pix(img_array)
-            #img_array = img_array.astype(np.uint8)    
 
     enlarged_array = np.repeat(img_array, enlarge_factor, axis=0)
     try:
         enlarged_array = np.repeat(enlarged_array, enlarge_factor, axis=1)
     except:
         enlarged_array = np.tile(enlarged_array, [enlarge_factor, 1])
-        pass
 
     # Create an image from the array
     img = Image.fromarray(enlarged_array, mode="L")  # 'L' mode is for grayscale
-
     return img
 
 streamlit_analytics2.start_tracking()
@@ -529,7 +534,8 @@ with state_col:
         z_arr = st.session_state.agent.story[
             sel_state, st.session_state.agent.arch.Z__flat
         ]
-        z_int = z_arr.dot(2 ** np.arange(z_arr.size)[::-1])
+        z_arr_np = z_arr.detach().cpu().numpy()
+        z_int = z_arr_np.dot(2 ** np.arange(z_arr_np.size)[::-1])
         z_img = arr_to_img(z_arr)
         st.write("Result in binary:")
         st.image(z_img)
