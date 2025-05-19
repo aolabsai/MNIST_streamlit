@@ -79,7 +79,7 @@ def run_agent(user_STEPS, INPUT, LABEL=[]):
     z = st.session_state.agent.story[s - 1, z_index]
 
     elapsed_time = time.time() - start_time  # end time
-    log_file = "200_train_images.csv"
+    log_file = "200_train_images_torch.csv"
     df = pd.DataFrame({"elapsed_time_seconds": [elapsed_time]})
     if os.path.exists(log_file):
         df.to_csv(log_file, mode='a', header=False, index=False)
@@ -545,6 +545,7 @@ with state_col:
             sel_state, st.session_state.agent.arch.Z__flat
         ]
         z_arr_np = z_arr.detach().cpu().numpy()
+        # z_arr_np = z_arr
         z_int = z_arr_np.dot(2 ** np.arange(z_arr_np.size)[::-1])
         z_img = arr_to_img(z_arr)
         st.write("Result in binary:")
